@@ -1,4 +1,0 @@
-if (application.status === "APPROVED") {
-  sendEmail();
-  sendSMS();
-}
