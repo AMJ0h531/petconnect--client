@@ -1,7 +1,7 @@
 // src/services/api.js
 // WHY axios instance: configure base URL and JWT header ONCE
 // Every service file imports this — never writes the full URL or auth header again
-import axios from 'axios'
+import axios from "axios";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api',
