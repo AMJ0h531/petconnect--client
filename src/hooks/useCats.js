@@ -1,4 +1,3 @@
-// src/hooks/useCats.js
 import { useState, useEffect, useCallback } from 'react'
 import catService from '../services/catService'
 
