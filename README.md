@@ -22,17 +22,16 @@ Proposed Solution: Pet Adoption/Owner Connect which is a full-stack web applicat
 ### Executing program
 
 * How to run the program
+
 * Step-by-step bullets
-```
+
 code blocks for commands
-```
 
 ## Help
 
 Any advise for common problems or issues.
-```
+
 command to run if program contains helper info
-```
 
 ## Authors
 
@@ -44,10 +43,10 @@ ajohnson53169@gmail.com
 ## Version History
 
 * 0.2
-    * Various bug fixes and optimizations
-    * See [commit change]() or See [release history]()
+* Various bug fixes and optimizations
+* See [commit change]() or See [release history]()
 * 0.1
-    * Initial Release
+* Initial Release
 
 ## License
 
@@ -67,42 +66,38 @@ Inspiration, code snippets, etc.
 ## Running Pet Connect Plus locally
 
 ### Prerequisites
-- Node.js 18+
-- Your Spring Boot backend running on localhost:8080
+Node.js 18+
+Your Spring Boot backend running on localhost:8080
 
 ### Setup
 
 1. Clone the frontend repo
-```bash
-   git clone https://github.com/AMJ0h531/petconnect--client
-   cd petconnect--client
-```
+bash
+git clone https://github.com/AMJ0h531/petconnect--client
+cd petconnect--client
 
 2. Install dependencies
-```bash
-   npm install
-```
+bash
+npm install
 
 3. Create your .env file
-```bash
-   cp .env.example .env
-   # .env already points to localhost:8080 for local dev
-```
+bash
+cp .env.example .env
+# .env already points to localhost:8080 for local dev
 
 4. Start the development server
-```bash
-   npm run dev
-```
-   Open http://localhost:5173
+bash
+npm run dev
+
+Open http://localhost:5173
 
 ### Building for AWS deployment
-```bash
+bash
 # Sets VITE_API_URL to your EC2 address, outputs to dist/
 VITE_API_URL=http://your-ec2-ip:8080/api npm run build
 
 # Upload dist/ folder to S3
 aws s3 sync dist/ s3://your-bucket-name --delete
-```
 
 ### Demo credentials (from seed data)
 | Role    | Username       | Password   |
