@@ -61,3 +61,51 @@ Inspiration, code snippets, etc.
 * [dbader](https://github.com/dbader/readme-template)
 * [zenorocha](https://gist.github.com/zenorocha/4526327)
 * [fvcproductions](https://gist.github.com/fvcproductions/1bfc2d4aecb01a834b46)
+
+<!-- Add this to your frontend README -->
+
+## Running Pet Connect Plus locally
+
+### Prerequisites
+- Node.js 18+
+- Your Spring Boot backend running on localhost:8080
+
+### Setup
+
+1. Clone the frontend repo
+```bash
+   git clone https://github.com/AMJ0h531/petconnect--client
+   cd petconnect--client
+```
+
+2. Install dependencies
+```bash
+   npm install
+```
+
+3. Create your .env file
+```bash
+   cp .env.example .env
+   # .env already points to localhost:8080 for local dev
+```
+
+4. Start the development server
+```bash
+   npm run dev
+```
+   Open http://localhost:5173
+
+### Building for AWS deployment
+```bash
+# Sets VITE_API_URL to your EC2 address, outputs to dist/
+VITE_API_URL=http://your-ec2-ip:8080/api npm run build
+
+# Upload dist/ folder to S3
+aws s3 sync dist/ s3://your-bucket-name --delete
+```
+
+### Demo credentials (from seed data)
+| Role    | Username       | Password   |
+|---------|---------------|------------|
+| Admin   | shelter_admin  | admin123   |
+| User    | user_anna      | admin123   |

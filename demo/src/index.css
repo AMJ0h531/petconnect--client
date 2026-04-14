@@ -1,0 +1,52 @@
+/* src/index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Import brand fonts */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Nunito:wght@400;500;600;700&display=swap');
+
+/* WHY CSS variables: change the brand once, updates everywhere */
+:root {
+  --color-teal:       #1D9E75;
+  --color-teal-light: #E1F5EE;
+  --color-warm:       #D85A30;
+  --color-soft:       #D4537E;
+  --transition-base:  all 0.2s ease;
+}
+
+/* Base typography */
+body {
+  font-family: 'Nunito', sans-serif;
+  background-color: #FAFAF8;
+  color: #2C2C2A;
+}
+
+h1, h2, h3 {
+  font-family: 'Playfair Display', serif;
+}
+
+/* Smooth page transitions */
+.page-enter {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Pet card hover lift effect */
+.pet-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.pet-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.10);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar       { width: 6px; }
+::-webkit-scrollbar-track { background: #F1EFE8; }
+::-webkit-scrollbar-thumb { background: #B4B2A9; border-radius: 3px; }
