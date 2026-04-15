@@ -1,6 +1,6 @@
 // src/App.jsx
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { AuthProvider } from './context/AuthContext'
+import { AuthProvider } from './AuthContext'
 import Navbar            from './components/Navbar'
 import ProtectedRoute    from './components/ProtectedRoute'
 
