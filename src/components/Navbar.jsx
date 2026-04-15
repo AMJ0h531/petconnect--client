@@ -1,6 +1,7 @@
 // src/components/Navbar.jsx
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth }           from '../hooks/useAuth'
+import { Routes, Route, Navigate } from 'react-router-dom'
 
 export default function Navbar() {
   const { isLoggedIn, isAdmin, user, logout } = useAuth()
