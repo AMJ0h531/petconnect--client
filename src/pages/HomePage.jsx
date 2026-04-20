@@ -6,6 +6,7 @@ import catService              from '../services/catService'
 import PetCard                 from '../components/PetCard'
 
 export default function HomePage() {
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
   const [featuredDogs, setFeaturedDogs] = useState([])
   const [featuredCats, setFeaturedCats] = useState([])
   const [loading,      setLoading]      = useState(true)

@@ -12,14 +12,15 @@ export function useDogs(filters = {}, page = 0) {
     setError(null)
     try {
       const response = await dogService.getAll(filters, page)
-      setDogs(response.data.content)         
-      setTotalPages(response.data.totalPages)
+      console.log('dogService response:', response.data) // 👈 ADD THIS
+      setDogs(response.data.content ?? [])               // 👈 REPLACE old line
+      setTotalPages(response.data.totalPages ?? 0)       // 👈 REPLACE old line
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load dogs')
     } finally {
-      setLoading(false)  
+      setLoading(false)
     }
-  }, [JSON.stringify(filters), page])  
+  }, [JSON.stringify(filters), page])
 
   useEffect(() => { fetchDogs() }, [fetchDogs])
 

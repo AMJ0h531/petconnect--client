@@ -21,7 +21,7 @@ export default function BrowseDogsPage() {
     setPage(0)
   }
 
-  const { dogs, totalPages, loading, error } = useDogs(filters, page)
+ const { dogs = [], totalPages, loading, error } = useDogs(filters, page)
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-10">

@@ -12,8 +12,9 @@ export function useCats(filters = {}, page = 0) {
     setError(null)
     try {
       const response = await catService.getAll(filters, page)
-      setCats(response.data.content)
-      setTotalPages(response.data.totalPages)
+      console.log('catService response:', response.data) // 👈 ADD THIS
+      setCats(response.data.content ?? [])               // 👈 REPLACE old line
+      setTotalPages(response.data.totalPages ?? 0)       // 👈 REPLACE old line
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load cats')
     } finally {
