@@ -12,17 +12,21 @@ export default function HomePage() {
 
   useEffect(() => {
     const loadFeatured = async () => {
-      try {
-        const [dogs, cats] = await Promise.all([
-          dogService.getFeatured(),
-          catService.getFeatured(),
-        ])
-        setFeaturedDogs(dogs.data || [])
-        setFeaturedCats(cats.data || [])
-      } catch (e) {
-        console.error('Could not load featured pets', e)
-      } finally {
-        setLoading(false)
+  try {
+    const [dogs, cats] = await Promise.all([
+      dogService.getFeatured(),
+      catService.getFeatured(),
+    ])
+
+    const dogsData = Array.isArray(dogs.data) ? dogs.data : []
+    const catsData = Array.isArray(cats.data) ? cats.data : []
+
+    setFeaturedDogs(dogsData)
+    setFeaturedCats(catsData)
+  } catch (e) {
+    console.error('Could not load featured pets', e)
+  } finally {
+    setLoading(false)
       }
     }
     loadFeatured()
@@ -109,7 +113,9 @@ export default function HomePage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredDogs.map(dog => <PetCard key={dog.id} pet={dog} />)}
+           {Array.isArray(featuredDogs) ? featuredDogs.map(dog => (
+            <PetCard key={dog.id} pet={dog} />
+          )) : null}
           </div>
         )}
       </section>
@@ -162,7 +168,9 @@ export default function HomePage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredCats.map(cat => <PetCard key={cat.id} pet={cat} />)}
+            {Array.isArray(featuredCats) ? featuredCats.map(cat => (
+             <PetCard key={cat.id} pet={cat} />
+          )) : null}
           </div>
         )}
       </section>
