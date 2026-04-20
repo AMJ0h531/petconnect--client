@@ -1,5 +1,6 @@
 // src/App.jsx
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { AuthProvider } from './AuthContext'
 import Navbar            from './components/Navbar'
 import ProtectedRoute    from './components/ProtectedRoute'
@@ -52,3 +53,16 @@ export default function App() {
     </AuthProvider>
   )
 }
+
+const router = createBrowserRouter(routes, {
+  future: {
+    v7_startTransition: true,
+    v7_relativeSplatPath: true,
+  },
+});
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <RouterProvider router={router} />
+  </React.StrictMode>,
+);
