@@ -19,8 +19,6 @@ const catService = {
   update: (id, catData)     => api.put(`/cats/${id}`, catData),
   delete: (id)              => api.delete(`/cats/${id}`),
 
-  setCats(response.data.content ?? [])
-  setTotalPages(response.data.totalPages ?? 0)
 }
 
 export default catService

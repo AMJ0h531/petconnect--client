@@ -25,4 +25,5 @@ export function useCats(filters = {}, page = 0) {
   useEffect(() => { fetchCats() }, [fetchCats])
 
   return { cats, totalPages, loading, error, refetch: fetchCats }
+
 }
