@@ -15,7 +15,7 @@ const {
 
 const app       = express();
 const PORT      = process.env.PORT || 3001;
-const FRONTEND  = process.env.FRONTEND_URL || 'http://localhost:5173';
+const FRONTEND  = process.env.FRONTEND_URL || 'http://localhost:8081';
 const FROM      = process.env.EMAIL_FROM || 'PetConnect+ <noreply@petconnect.app>';
 
 // ── Middleware ───────────────────────────────────────────────────────────────
