@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pet Sitter Care Form — PetConnect+</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --sky-50:#f0f9ff; --sky-100:#e0f2fe; --sky-200:#bae6fd;
+      --sky-400:#38bdf8; --sky-500:#0ea5e9; --sky-600:#0284c7;
+      --sky-700:#0369a1; --sky-900:#0c4a6e;
+      --white:#ffffff; --text:#0c2d45; --text-soft:#4a7fa0;
+      --green:#059669; --green-light:#d1fae5;
+      --shadow:0 4px 24px rgba(14,165,233,.10);
+      --shadow-hover:0 14px 40px rgba(14,165,233,.22);
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family:'DM Sans',sans-serif; background:var(--sky-50); color:var(--text); min-height:100vh; }
+
+    /* ── NAV ── */
+    nav { position:sticky; top:0; z-index:200; background:rgba(240,249,255,.96); backdrop-filter:blur(10px); border-bottom:1.5px solid var(--sky-200); padding:0 48px; display:flex; align-items:center; justify-content:space-between; height:68px; }
+    .nav-logo { font-family:'Playfair Display',serif; font-size:1.45rem; font-weight:900; color:var(--sky-700); letter-spacing:-.5px; text-decoration:none; display:flex; align-items:center; gap:6px; }
+    .nav-logo .plus { background:var(--sky-500); color:#fff; font-size:.82rem; font-family:'DM Sans',sans-serif; font-weight:800; padding:2px 8px; border-radius:7px; }
+    .nav-back { font-size:.88rem; font-weight:600; color:var(--sky-600); text-decoration:none; padding:8px 18px; border:1.5px solid var(--sky-200); border-radius:99px; background:#fff; transition:background .2s,border-color .2s; }
+    .nav-back:hover { background:var(--sky-100); border-color:var(--sky-400); }
+
+    /* ── PAGE LAYOUT ── */
+    .page { max-width:680px; margin:0 auto; padding:48px 24px 80px; }
+
+    /* ── HEADER CARD ── */
+    .header-card { background:linear-gradient(135deg,var(--sky-700),var(--sky-900)); border-radius:22px; padding:36px 40px; color:#fff; margin-bottom:28px; position:relative; overflow:hidden; }
+    .header-card::after { content:'🐾'; position:absolute; font-size:9rem; opacity:.07; bottom:-20px; right:10px; transform:rotate(-15deg); }
+    .header-eyebrow { font-size:.72rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:rgba(186,230,253,.75); margin-bottom:10px; }
+    .header-card h1 { font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:900; margin-bottom:8px; line-height:1.2; }
+    .header-card p { font-size:.9rem; color:rgba(186,230,253,.85); line-height:1.6; }
+
+    /* ── CARE SUMMARY CARD ── */
+    .care-card { background:#fff; border:1.5px solid var(--sky-200); border-radius:20px; padding:28px 30px; margin-bottom:24px; box-shadow:var(--shadow); }
+    .care-card h3 { font-family:'Playfair Display',serif; font-size:1.05rem; font-weight:700; color:var(--sky-900); margin-bottom:18px; display:flex; align-items:center; gap:8px; }
+    .care-row { display:flex; gap:12px; padding:9px 0; border-bottom:1px solid var(--sky-100); align-items:flex-start; }
+    .care-row:last-child { border-bottom:none; }
+    .care-label { font-size:.78rem; font-weight:700; color:var(--sky-600); text-transform:uppercase; letter-spacing:.7px; min-width:120px; padding-top:1px; }
+    .care-value { font-size:.88rem; color:var(--text); line-height:1.5; flex:1; }
+    .care-value.empty { color:var(--text-soft); font-style:italic; }
+
+    /* ── SITTER FORM ── */
+    .form-card { background:#fff; border:1.5px solid var(--sky-200); border-radius:20px; padding:28px 30px; box-shadow:var(--shadow); }
+    .form-card h3 { font-family:'Playfair Display',serif; font-size:1.05rem; font-weight:700; color:var(--sky-900); margin-bottom:20px; display:flex; align-items:center; gap:8px; }
+    .form-section { margin-bottom:24px; }
+    .section-label { font-size:.78rem; font-weight:700; color:var(--sky-600); text-transform:uppercase; letter-spacing:.8px; margin-bottom:12px; padding-bottom:6px; border-bottom:1.5px solid var(--sky-100); }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+    .form-group { display:flex; flex-direction:column; gap:5px; }
+    .form-group label { font-size:.78rem; font-weight:700; color:var(--sky-700); text-transform:uppercase; letter-spacing:.7px; }
+    .form-group input, .form-group textarea {
+      background:var(--sky-50); border:1.5px solid var(--sky-200); border-radius:10px;
+      padding:10px 14px; font-family:'DM Sans',sans-serif; font-size:.92rem; color:var(--text);
+      transition:border-color .2s, box-shadow .2s; outline:none; width:100%;
+    }
+    .form-group input:focus, .form-group textarea:focus { border-color:var(--sky-500); box-shadow:0 0 0 3px rgba(14,165,233,.12); }
+    .form-group textarea { resize:vertical; min-height:80px; }
+
+    /* ── CHECKLIST ── */
+    .checklist { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .check-item { display:flex; align-items:center; gap:10px; background:var(--sky-50); border:1.5px solid var(--sky-200); border-radius:11px; padding:11px 14px; cursor:pointer; transition:border-color .2s, background .2s; user-select:none; }
+    .check-item:hover { border-color:var(--sky-400); background:var(--sky-100); }
+    .check-item.checked { background:var(--green-light); border-color:rgba(5,150,105,.35); }
+    .check-item input[type=checkbox] { accent-color:var(--sky-500); width:16px; height:16px; cursor:pointer; flex-shrink:0; }
+    .check-item span { font-size:.84rem; font-weight:500; color:var(--text); line-height:1.3; }
+    .check-item.checked span { color:var(--green); font-weight:600; }
+
+    /* ── SUBMIT BUTTON ── */
+    .btn-submit { width:100%; background:var(--sky-500); color:#fff; border:none; cursor:pointer; padding:15px; border-radius:99px; font-size:1rem; font-weight:800; margin-top:24px; transition:background .2s, transform .15s, box-shadow .2s; box-shadow:0 6px 20px rgba(14,165,233,.35); }
+    .btn-submit:hover:not(:disabled) { background:var(--sky-600); transform:translateY(-2px); }
+    .btn-submit:disabled { background:var(--sky-200); cursor:default; box-shadow:none; transform:none; }
+
+    /* ── COMPLETION BANNER ── */
+    .completion-banner { display:none; background:linear-gradient(135deg,#065f46,#047857); color:#fff; border-radius:22px; padding:48px 40px; text-align:center; }
+    .completion-banner.show { display:block; animation:fadeUp .5s ease both; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+    .completion-banner .big-icon { font-size:3.5rem; margin-bottom:16px; display:block; }
+    .completion-banner h2 { font-family:'Playfair Display',serif; font-size:1.9rem; font-weight:900; margin-bottom:12px; }
+    .completion-banner p { color:rgba(255,255,255,.85); font-size:.95rem; line-height:1.65; max-width:440px; margin:0 auto 8px; }
+    .completion-detail { background:rgba(255,255,255,.12); border-radius:14px; padding:16px 20px; margin-top:20px; text-align:left; }
+    .completion-detail div { font-size:.83rem; color:rgba(255,255,255,.85); padding:5px 0; display:flex; align-items:center; gap:8px; }
+    .completion-detail div::before { content:'✓'; font-weight:900; color:#6ee7b7; }
+    .btn-back-home { display:inline-block; background:rgba(255,255,255,.2); color:#fff; border:2px solid rgba(255,255,255,.4); padding:12px 32px; border-radius:99px; font-size:.92rem; font-weight:700; text-decoration:none; margin-top:24px; transition:background .2s; }
+    .btn-back-home:hover { background:rgba(255,255,255,.3); }
+
+    /* ── TOAST ── */
+    .toast-container { position:fixed; bottom:28px; right:28px; z-index:9999; display:flex; flex-direction:column; gap:10px; pointer-events:none; }
+    .toast { background:var(--sky-900); color:#fff; padding:14px 22px; border-radius:14px; font-size:.9rem; font-weight:500; box-shadow:0 8px 28px rgba(12,45,69,.35); display:flex; align-items:center; gap:10px; transform:translateX(120%); transition:transform .4s cubic-bezier(.34,1.56,.64,1); pointer-events:auto; max-width:340px; }
+    .toast.show { transform:translateX(0); }
+    .toast.success { background:#065f46; border-left:4px solid #10b981; }
+    .toast.info    { background:var(--sky-700); border-left:4px solid var(--sky-400); }
+
+    /* ── CONFETTI ── */
+    #confetti-canvas { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9998; display:none; }
+
+    @media(max-width:640px) {
+      nav { padding:0 16px; }
+      .page { padding:28px 16px 60px; }
+      .header-card { padding:28px 24px; }
+      .header-card h1 { font-size:1.45rem; }
+      .form-row, .checklist { grid-template-columns:1fr; }
+      .care-label { min-width:90px; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">PetConnect<span class="plus">+</span></a>
+  <a href="index.html" class="nav-back">← Back to PetConnect+</a>
+</nav>
+
+<div class="page">
+
+  <!-- Header — filled dynamically -->
+  <div class="header-card">
+    <div class="header-eyebrow">🐾 Pet Sitter Care Form</div>
+    <h1 id="headerTitle">Care Instructions</h1>
+    <p id="headerSub">Please review the care details below, complete all tasks, and submit your report.</p>
+  </div>
+
+  <!-- Care Summary — filled from URL params -->
+  <div class="care-card" id="careSummary">
+    <h3>📋 Care Summary</h3>
+    <div class="care-row"><span class="care-label">Pet Name</span><span class="care-value" id="s-petName">—</span></div>
+    <div class="care-row"><span class="care-label">Owner</span><span class="care-value" id="s-ownerName">—</span></div>
+    <div class="care-row"><span class="care-label">Agency</span><span class="care-value" id="s-agencyName">—</span></div>
+    <div class="care-row"><span class="care-label">Feeding</span><span class="care-value" id="s-feeding">—</span></div>
+    <div class="care-row"><span class="care-label">Medications</span><span class="care-value" id="s-meds">—</span></div>
+    <div class="care-row"><span class="care-label">Vet Contact</span><span class="care-value" id="s-vet">—</span></div>
+  </div>
+
+  <!-- Sitter Form -->
+  <div id="formWrap">
+    <div class="form-card">
+      <h3>✍️ Your Information</h3>
+      <div class="form-section">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Your Name</label>
+            <input type="text" id="sitter-name" placeholder="Pet sitter's full name"/>
+          </div>
+          <div class="form-group">
+            <label>Your Email</label>
+            <input type="email" id="sitter-email" placeholder="sitter@email.com"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Date of Care</label>
+          <input type="date" id="sitter-date"/>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-label">✅ Tasks Completed Today</div>
+        <div class="checklist" id="taskChecklist">
+          <label class="check-item"><input type="checkbox"/><span>Morning feeding</span></label>
+          <label class="check-item"><input type="checkbox"/><span>Evening feeding</span></label>
+          <label class="check-item"><input type="checkbox"/><span>Fresh water refilled</span></label>
+          <label class="check-item"><input type="checkbox"/><span>Morning walk</span></label>
+          <label class="check-item"><input type="checkbox"/><span>Evening walk</span></label>
+          <label class="check-item"><input type="checkbox"/><span>Medication given</span></label>
+          <label class="check-item"><input type="checkbox"/><span>Playtime (30 min)</span></label>
+          <label class="check-item"><input type="checkbox"/><span>Grooming / brushing</span></label>
+          <label class="check-item"><input type="checkbox"/><span>Litter box cleaned</span></label>
+          <label class="check-item"><input type="checkbox"/><span>Health check done</span></label>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-group">
+          <label>Notes / Observations</label>
+          <textarea id="sitter-notes" placeholder="Any observations, concerns, or updates about the pet today..."></textarea>
+        </div>
+      </div>
+
+      <button class="btn-submit" id="submitBtn" onclick="submitForm()">
+        ✅ Submit & Notify Owner + Agency
+      </button>
+    </div>
+  </div>
+
+  <!-- Completion Banner (shown after submit) -->
+  <div class="completion-banner" id="completionBanner">
+    <span class="big-icon">🎉</span>
+    <h2>Care Report Submitted!</h2>
+    <p>Thank you for taking great care of <strong id="completionPetName">the pet</strong>. Both the owner and the adoption agency have been notified.</p>
+    <div class="completion-detail" id="completionDetail"></div>
+    <a href="index.html" class="btn-back-home">← Return to PetConnect+</a>
+  </div>
+
+</div><!-- end .page -->
+
+<script>
+  // ── Read URL params and populate the page ──────────────────────────────────
+  const params   = new URLSearchParams(window.location.search);
+  const petName  = params.get('petName')   || 'Your Pet';
+  const ownerName  = params.get('ownerName')  || '—';
+  const agencyName = params.get('agencyName') || '—';
+  const feeding    = params.get('feeding')    || '—';
+  const meds       = params.get('meds')       || '—';
+  const vet        = params.get('vet')        || '—';
+
+  // Populate header
+  document.getElementById('headerTitle').textContent   = `Care Instructions for ${petName}`;
+  document.getElementById('headerSub').textContent     = `${ownerName} has shared these care details with you. Please complete all tasks and submit your report below.`;
+  document.getElementById('completionPetName').textContent = petName;
+
+  // Populate care summary
+  document.getElementById('s-petName').textContent    = petName;
+  document.getElementById('s-ownerName').textContent  = ownerName  !== '—' ? ownerName  : ''; if(!ownerName  || ownerName==='—') document.getElementById('s-ownerName').classList.add('empty'), document.getElementById('s-ownerName').textContent='Not provided';
+  document.getElementById('s-agencyName').textContent = agencyName !== '—' ? agencyName : ''; if(!agencyName || agencyName==='—') document.getElementById('s-agencyName').classList.add('empty'), document.getElementById('s-agencyName').textContent='Not provided';
+  document.getElementById('s-feeding').textContent    = feeding    !== '—' ? feeding    : ''; if(!feeding    || feeding==='—')    document.getElementById('s-feeding').classList.add('empty'),    document.getElementById('s-feeding').textContent='Not specified';
+  document.getElementById('s-meds').textContent       = meds       !== '—' ? meds       : ''; if(!meds       || meds==='—')       document.getElementById('s-meds').classList.add('empty'),       document.getElementById('s-meds').textContent='None';
+  document.getElementById('s-vet').textContent        = vet        !== '—' ? vet        : ''; if(!vet        || vet==='—')        document.getElementById('s-vet').classList.add('empty'),        document.getElementById('s-vet').textContent='Not provided';
+
+  // Default date to today
+  document.getElementById('sitter-date').value = new Date().toISOString().split('T')[0];
+
+  // Checklist toggle styling
+  document.querySelectorAll('.check-item').forEach(item => {
+    item.addEventListener('change', () => {
+      item.classList.toggle('checked', item.querySelector('input').checked);
+    });
+  });
+
+  // ── Submit ─────────────────────────────────────────────────────────────────
+  function submitForm() {
+    const name  = document.getElementById('sitter-name').value.trim();
+    const email = document.getElementById('sitter-email').value.trim();
+    const date  = document.getElementById('sitter-date').value;
+    const notes = document.getElementById('sitter-notes').value.trim();
+
+    if (!name)  { showToast('Please enter your name.', 'info'); return; }
+    if (!email) { showToast('Please enter your email address.', 'info'); return; }
+
+    const checked = document.querySelectorAll('#taskChecklist input:checked');
+    if (checked.length === 0) { showToast('Please check off at least one completed task.', 'info'); return; }
+
+    const completedTasks = [...checked].map(c => c.closest('label').querySelector('span').textContent);
+
+    // Disable button, show progress
+    const btn = document.getElementById('submitBtn');
+    btn.textContent = '⏳ Submitting report...';
+    btn.disabled = true;
+
+    // Step-by-step simulated notifications
+    setTimeout(() => showToast(`📝 Care report for ${petName} recorded`, 'success', 5000), 600);
+    setTimeout(() => showToast(`📧 ${ownerName !== '—' ? ownerName : 'Owner'} notified — completion confirmed!`, 'success', 6000), 1800);
+    setTimeout(() => showToast(`🏥 ${agencyName !== '—' ? agencyName : 'Adoption agency'} notified — checklist on file!`, 'success', 6000), 3000);
+
+    setTimeout(() => {
+      // Hide form, show completion banner
+      document.getElementById('formWrap').style.display = 'none';
+      document.getElementById('careSummary').style.display = 'none';
+
+      const detail = document.getElementById('completionDetail');
+      detail.innerHTML = `
+        <div>Submitted by: <strong>${name}</strong> (${email})</div>
+        <div>Date of care: <strong>${date || 'Today'}</strong></div>
+        <div>${completedTasks.length} task${completedTasks.length !== 1 ? 's' : ''} completed</div>
+        ${ownerName !== '—' ? `<div>Owner <strong>${ownerName}</strong> notified</div>` : ''}
+        ${agencyName !== '—' ? `<div>Agency <strong>${agencyName}</strong> notified</div>` : ''}
+        ${notes ? `<div>Notes on file: "${notes.substring(0,60)}${notes.length>60?'…':''}"</div>` : ''}
+      `;
+
+      document.getElementById('completionBanner').classList.add('show');
+      launchConfetti();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 3800);
+  }
+
+  // ── Confetti ───────────────────────────────────────────────────────────────
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx    = canvas.getContext('2d');
+  let particles = [], frame;
+  function launchConfetti() {
+    canvas.style.display = 'block';
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+    particles = [];
+    const colors = ['#38bdf8','#0ea5e9','#7dd3fc','#bae6fd','#fbbf24','#34d399','#a78bfa','#f472b6','#fff'];
+    for (let i = 0; i < 180; i++) {
+      particles.push({
+        x:Math.random()*canvas.width, y:Math.random()*-canvas.height,
+        w:Math.random()*10+5, h:Math.random()*5+3,
+        color:colors[Math.floor(Math.random()*colors.length)],
+        angle:Math.random()*Math.PI*2, spin:(Math.random()-.5)*.2,
+        vx:(Math.random()-.5)*3, vy:Math.random()*4+2, alpha:1
+      });
+    }
+    animateConfetti();
+    setTimeout(() => { cancelAnimationFrame(frame); canvas.style.display = 'none'; }, 3500);
+  }
+  function animateConfetti() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.y+=p.vy; p.x+=p.vx; p.angle+=p.spin;
+      if (p.y > canvas.height * .7) p.alpha -= .025;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, p.alpha);
+      ctx.translate(p.x, p.y); ctx.rotate(p.angle);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+      ctx.restore();
+    });
+    frame = requestAnimationFrame(animateConfetti);
+  }
+
+  // ── Toast ──────────────────────────────────────────────────────────────────
+  function showToast(msg, type='info', duration=4000) {
+    const c = document.getElementById('toastContainer');
+    const t = document.createElement('div');
+    t.className = `toast ${type}`;
+    t.innerHTML = `<span>${msg}</span>`;
+    c.appendChild(t);
+    requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('show')));
+    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 500); }, duration);
+  }
+</script>
+</body>
+</html>

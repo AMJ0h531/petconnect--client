@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Match Quiz — PetConnect+</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --sky-50:#f0f9ff; --sky-100:#e0f2fe; --sky-200:#bae6fd;
+      --sky-400:#38bdf8; --sky-500:#0ea5e9; --sky-600:#0284c7;
+      --sky-700:#0369a1; --sky-900:#0c4a6e;
+      --white:#ffffff; --text:#0c2d45; --text-soft:#4a7fa0;
+      --green:#059669; --green-light:#d1fae5;
+      --shadow:0 4px 24px rgba(14,165,233,.10);
+      --shadow-hover:0 14px 40px rgba(14,165,233,.22);
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family:'DM Sans',sans-serif; background:var(--sky-50); color:var(--text); min-height:100vh; }
+
+    /* ── NAV ── */
+    nav { position:sticky; top:0; z-index:200; background:rgba(240,249,255,.96); backdrop-filter:blur(10px); border-bottom:1.5px solid var(--sky-200); padding:0 48px; display:flex; align-items:center; justify-content:space-between; height:68px; }
+    .nav-logo { font-family:'Playfair Display',serif; font-size:1.45rem; font-weight:900; color:var(--sky-700); letter-spacing:-.5px; text-decoration:none; display:flex; align-items:center; gap:6px; }
+    .nav-logo .plus { background:var(--sky-500); color:#fff; font-size:.82rem; font-family:'DM Sans',sans-serif; font-weight:800; padding:2px 8px; border-radius:7px; }
+    .nav-links { display:flex; gap:6px; list-style:none; }
+    .nav-links a { text-decoration:none; font-size:.9rem; font-weight:500; color:var(--text-soft); padding:7px 18px; border-radius:99px; transition:background .2s,color .2s; }
+    .nav-links a:hover { background:var(--sky-100); color:var(--sky-700); }
+    .nav-links a.active { background:var(--sky-500); color:#fff; }
+
+    /* ── QUIZ WRAPPER ── */
+    .quiz-shell { max-width:720px; margin:0 auto; padding:48px 24px 80px; }
+
+    /* ── BACK ── */
+    .btn-back { display:inline-flex; align-items:center; gap:8px; font-size:.88rem; font-weight:600; color:var(--sky-600); text-decoration:none; padding:8px 18px; border:1.5px solid var(--sky-200); border-radius:99px; background:#fff; transition:background .2s,border-color .2s; margin-bottom:32px; cursor:pointer; }
+    .btn-back:hover { background:var(--sky-100); border-color:var(--sky-400); }
+
+    /* ── INTRO SCREEN ── */
+    .screen { display:none; animation:fadeUp .4s ease both; }
+    .screen.active { display:block; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+
+    .intro-card { background:#fff; border:1.5px solid var(--sky-200); border-radius:28px; padding:52px 48px; text-align:center; box-shadow:var(--shadow-hover); }
+    .intro-icon { font-size:4rem; margin-bottom:20px; display:block; animation:bounce 2s ease-in-out infinite; }
+    @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+    .intro-card h1 { font-family:'Playfair Display',serif; font-size:2.4rem; font-weight:900; color:var(--sky-900); margin-bottom:14px; line-height:1.15; }
+    .intro-card h1 em { font-style:normal; color:var(--sky-500); }
+    .intro-card p { color:var(--text-soft); font-size:1rem; line-height:1.7; max-width:460px; margin:0 auto 32px; }
+    .intro-steps { display:flex; gap:16px; justify-content:center; margin-bottom:36px; flex-wrap:wrap; }
+    .intro-step { background:var(--sky-50); border:1.5px solid var(--sky-200); border-radius:14px; padding:14px 20px; font-size:.85rem; font-weight:600; color:var(--sky-700); display:flex; align-items:center; gap:8px; }
+    .btn-start { background:var(--sky-500); color:#fff; border:none; cursor:pointer; padding:16px 48px; border-radius:99px; font-size:1.05rem; font-weight:800; transition:background .2s,transform .15s,box-shadow .2s; box-shadow:0 6px 22px rgba(14,165,233,.40); }
+    .btn-start:hover { background:var(--sky-600); transform:translateY(-2px); }
+
+    /* ── PROGRESS BAR ── */
+    .progress-wrap { margin-bottom:32px; }
+    .progress-label { display:flex; justify-content:space-between; font-size:.82rem; font-weight:600; color:var(--text-soft); margin-bottom:10px; }
+    .progress-track { background:var(--sky-100); border-radius:99px; height:8px; overflow:hidden; }
+    .progress-fill { background:linear-gradient(90deg,var(--sky-400),var(--sky-600)); height:100%; border-radius:99px; transition:width .5s cubic-bezier(.34,1.56,.64,1); }
+
+    /* ── QUESTION CARD ── */
+    .question-card { background:#fff; border:1.5px solid var(--sky-200); border-radius:24px; padding:40px 40px 36px; box-shadow:var(--shadow); }
+    .q-step-badge { display:inline-block; background:var(--sky-100); color:var(--sky-600); font-size:.75rem; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; padding:4px 14px; border-radius:99px; margin-bottom:18px; }
+    .q-text { font-family:'Playfair Display',serif; font-size:1.55rem; font-weight:700; color:var(--sky-900); line-height:1.3; margin-bottom:28px; }
+    .q-sub { font-size:.88rem; color:var(--text-soft); margin-top:-20px; margin-bottom:24px; }
+
+    /* Option grid */
+    .options-grid { display:grid; gap:12px; }
+    .options-grid.cols-2 { grid-template-columns:1fr 1fr; }
+    .options-grid.cols-1 { grid-template-columns:1fr; }
+
+    .option-btn {
+      background:var(--sky-50); border:2px solid var(--sky-200); border-radius:16px;
+      padding:16px 20px; cursor:pointer; text-align:left;
+      transition:border-color .2s, background .2s, transform .15s, box-shadow .15s;
+      display:flex; align-items:center; gap:14px;
+    }
+    .option-btn:hover { border-color:var(--sky-400); background:var(--sky-100); transform:translateY(-2px); box-shadow:var(--shadow); }
+    .option-btn.selected { border-color:var(--sky-500); background:var(--sky-100); box-shadow:0 0 0 3px rgba(14,165,233,.18); }
+    .option-btn.selected .opt-icon { background:var(--sky-500); color:#fff; }
+    .opt-icon { width:42px; height:42px; border-radius:12px; background:var(--sky-100); display:flex; align-items:center; justify-content:center; font-size:1.3rem; flex-shrink:0; transition:background .2s, color .2s; }
+    .opt-label { font-weight:700; font-size:.95rem; color:var(--text); line-height:1.3; }
+    .opt-sub { font-size:.78rem; color:var(--text-soft); margin-top:2px; }
+
+    /* Nav buttons */
+    .q-nav { display:flex; justify-content:space-between; align-items:center; margin-top:28px; }
+    .btn-prev { background:transparent; color:var(--sky-700); border:1.5px solid var(--sky-200); cursor:pointer; padding:11px 26px; border-radius:99px; font-size:.9rem; font-weight:700; transition:border-color .2s,background .2s; }
+    .btn-prev:hover { border-color:var(--sky-400); background:var(--sky-50); }
+    .btn-prev:disabled { opacity:.35; cursor:default; }
+    .btn-next { background:var(--sky-500); color:#fff; border:none; cursor:pointer; padding:12px 32px; border-radius:99px; font-size:.95rem; font-weight:700; transition:background .2s,transform .15s,box-shadow .2s; box-shadow:0 4px 14px rgba(14,165,233,.28); }
+    .btn-next:hover:not(:disabled) { background:var(--sky-600); transform:translateY(-1px); }
+    .btn-next:disabled { background:var(--sky-200); cursor:default; box-shadow:none; }
+
+    /* ── RESULTS ── */
+    .results-header { text-align:center; margin-bottom:36px; }
+    .results-header h2 { font-family:'Playfair Display',serif; font-size:2.2rem; font-weight:900; color:var(--sky-900); margin-bottom:10px; }
+    .results-header p { color:var(--text-soft); font-size:.98rem; line-height:1.65; max-width:500px; margin:0 auto; }
+
+    .result-card {
+      background:#fff; border:1.5px solid var(--sky-200); border-radius:22px;
+      overflow:hidden; box-shadow:var(--shadow);
+      display:grid; grid-template-columns:200px 1fr;
+      margin-bottom:20px; transition:transform .25s, box-shadow .25s;
+    }
+    .result-card:hover { transform:translateY(-4px); box-shadow:var(--shadow-hover); }
+    .result-card:first-of-type { border-color:var(--sky-400); box-shadow:0 4px 28px rgba(14,165,233,.18); }
+
+    .result-photo { position:relative; overflow:hidden; }
+    .result-photo img { width:100%; height:100%; object-fit:cover; display:block; min-height:180px; }
+    .rank-badge { position:absolute; top:12px; left:12px; background:var(--sky-500); color:#fff; font-size:.78rem; font-weight:800; padding:4px 12px; border-radius:99px; }
+    .rank-badge.gold { background:linear-gradient(135deg,#f59e0b,#d97706); }
+    .rank-badge.silver { background:linear-gradient(135deg,#94a3b8,#64748b); }
+    .rank-badge.bronze { background:linear-gradient(135deg,#b45309,#92400e); }
+
+    .result-body { padding:24px 26px; display:flex; flex-direction:column; justify-content:space-between; gap:12px; }
+    .result-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
+    .result-name { font-family:'Playfair Display',serif; font-size:1.4rem; font-weight:900; color:var(--sky-900); }
+    .result-breed { font-size:.84rem; color:var(--text-soft); margin-top:2px; }
+
+    /* Compatibility score donut */
+    .score-wrap { text-align:center; flex-shrink:0; }
+    .score-num { font-family:'Playfair Display',serif; font-size:1.6rem; font-weight:900; color:var(--sky-500); line-height:1; }
+    .score-label { font-size:.68rem; font-weight:700; color:var(--text-soft); text-transform:uppercase; letter-spacing:.8px; }
+
+    .match-reasons { display:flex; flex-direction:column; gap:5px; }
+    .match-reason { font-size:.82rem; color:var(--text-soft); display:flex; align-items:flex-start; gap:7px; }
+    .match-reason::before { content:'✓'; color:var(--green); font-weight:800; flex-shrink:0; }
+
+    .result-actions { display:flex; gap:10px; margin-top:4px; }
+    .btn-view-profile { flex:1; background:var(--sky-500); color:#fff; border:none; cursor:pointer; padding:11px; border-radius:99px; font-size:.88rem; font-weight:700; text-decoration:none; text-align:center; transition:background .2s; }
+    .btn-view-profile:hover { background:var(--sky-600); }
+    .btn-adopt-result { background:transparent; color:var(--sky-700); border:1.5px solid var(--sky-200); cursor:pointer; padding:10px 18px; border-radius:99px; font-size:.88rem; font-weight:700; text-decoration:none; white-space:nowrap; transition:border-color .2s,background .2s; }
+    .btn-adopt-result:hover { border-color:var(--sky-400); background:var(--sky-50); }
+
+    .btn-retake { display:block; width:100%; background:transparent; color:var(--sky-700); border:2px solid var(--sky-200); cursor:pointer; padding:14px; border-radius:99px; font-size:.95rem; font-weight:700; margin-top:24px; transition:border-color .2s,background .2s; text-align:center; }
+    .btn-retake:hover { border-color:var(--sky-400); background:var(--sky-50); }
+
+    /* Confetti */
+    #confetti-canvas { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9998; display:none; }
+
+    @media(max-width:640px) {
+      nav { padding:0 16px; }
+      .quiz-shell { padding:32px 16px 60px; }
+      .intro-card { padding:36px 24px; }
+      .intro-card h1 { font-size:1.8rem; }
+      .question-card { padding:28px 22px; }
+      .options-grid.cols-2 { grid-template-columns:1fr; }
+      .q-text { font-size:1.25rem; }
+      .result-card { grid-template-columns:1fr; }
+      .result-photo { min-height:200px; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">PetConnect<span class="plus">+</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html#dogs">Dogs</a></li>
+    <li><a href="index.html#cats">Cats</a></li>
+    <li><a href="match-quiz.html" class="active">Match Quiz</a></li>
+    <li><a href="index.html#reminders">Care Reminders</a></li>
+    <li><a href="index.html">Browse All</a></li>
+  </ul>
+</nav>
+
+<div class="quiz-shell">
+  <a href="index.html" class="btn-back">← Back to Browse</a>
+
+  <!-- ── SCREEN 0: INTRO ── -->
+  <div class="screen active" id="screen-intro">
+    <div class="intro-card">
+      <span class="intro-icon">🐾</span>
+      <h1>Find Your <em>Perfect</em> Pet Match</h1>
+      <p>Answer 5 quick questions about your lifestyle and we'll match you with the most compatible pets — complete with a compatibility score and personal reasons why.</p>
+      <div class="intro-steps">
+        <div class="intro-step">❓ 5 questions</div>
+        <div class="intro-step">⚡ 2 minutes</div>
+        <div class="intro-step">🎯 Ranked matches</div>
+      </div>
+      <button class="btn-start" onclick="startQuiz()">Let's Find My Match →</button>
+    </div>
+  </div>
+
+  <!-- ── SCREEN 1: QUIZ ── -->
+  <div class="screen" id="screen-quiz">
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span id="progressText">Question 1 of 5</span>
+        <span id="progressPct">0%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
+    <div class="question-card" id="questionCard"></div>
+  </div>
+
+  <!-- ── SCREEN 2: RESULTS ── -->
+  <div class="screen" id="screen-results">
+    <div class="results-header">
+      <div style="font-size:3rem;margin-bottom:14px;">🎉</div>
+      <h2>Your Top Matches!</h2>
+      <p>Based on your answers, here are the pets most compatible with your lifestyle — ranked by how well they fit.</p>
+    </div>
+    <div id="resultsContainer"></div>
+    <button class="btn-retake" onclick="retakeQuiz()">↩ Retake Quiz</button>
+  </div>
+</div>
+
+<script>
+// ── Questions ─────────────────────────────────────────────────────────────────
+const QUESTIONS = [
+  {
+    id: 'living',
+    text: 'What\'s your living situation?',
+    sub: 'This helps us find pets suited to your space.',
+    cols: 2,
+    options: [
+      { icon:'🏙️', label:'City Apartment', sub:'Limited outdoor space', value:'apartment' },
+      { icon:'🏡', label:'House with yard', sub:'Plenty of room to roam', value:'house' },
+      { icon:'🌆', label:'House, no yard', sub:'Access to parks nearby', value:'house_noyard' },
+      { icon:'🌾', label:'Rural / Farm', sub:'Lots of land', value:'rural' },
+    ]
+  },
+  {
+    id: 'activity',
+    text: 'How active is your lifestyle?',
+    sub: 'Be honest — your pet will match your pace!',
+    cols: 2,
+    options: [
+      { icon:'🛋️', label:'Homebody', sub:'I love cozy indoor days', value:'low' },
+      { icon:'🚶', label:'Moderately active', sub:'Daily walks, occasional hikes', value:'medium' },
+      { icon:'🏃', label:'Very active', sub:'Running, hiking, outdoors daily', value:'high' },
+      { icon:'⚡', label:'Extremely active', sub:'I need a workout buddy', value:'very_high' },
+    ]
+  },
+  {
+    id: 'household',
+    text: 'Who else lives with you?',
+    sub: 'We\'ll match pets known to do well in your home.',
+    cols: 2,
+    options: [
+      { icon:'🧍', label:'Just me', sub:'Solo household', value:'solo' },
+      { icon:'👫', label:'Me & a partner', sub:'Two adults', value:'couple' },
+      { icon:'👶', label:'Young kids at home', sub:'Children under 8', value:'young_kids' },
+      { icon:'🧒', label:'Older kids', sub:'Children 8 and up', value:'older_kids' },
+    ]
+  },
+  {
+    id: 'existing_pets',
+    text: 'Do you have other pets at home?',
+    cols: 2,
+    options: [
+      { icon:'🚫', label:'No other pets', sub:'Fresh start!', value:'none' },
+      { icon:'🐕', label:'I have a dog', sub:'Need a compatible match', value:'has_dog' },
+      { icon:'🐈', label:'I have a cat', sub:'Need a compatible match', value:'has_cat' },
+      { icon:'🐕🐈', label:'Both dogs & cats', sub:'Multi-pet home', value:'has_both' },
+    ]
+  },
+  {
+    id: 'preference',
+    text: 'What kind of companion are you looking for?',
+    sub: 'No wrong answer — just your vibe!',
+    cols: 1,
+    options: [
+      { icon:'🐶', label:'A dog — loyal, playful, always by my side', sub:'Daily walks, fetch, cuddles on demand', value:'dog' },
+      { icon:'🐱', label:'A cat — independent, calm, low-maintenance', sub:'Purrs, windowsills, and selective affection', value:'cat' },
+      { icon:'🤷', label:'Surprise me — I\'m open to either!', sub:'Best overall match wins', value:'either' },
+    ]
+  },
+];
+
+// ── Pet data with scoring tags ────────────────────────────────────────────────
+const PETS = [
+  {
+    id:'luna', name:'Luna', breed:'Labrador Mix', age:'2 yrs', gender:'Female', type:'dog',
+    img:'https://images.unsplash.com/photo-1601979031925-424e53b6caaa?w=500&q=80',
+    tags:{ living:['house','house_noyard','rural'], activity:['medium','high','very_high'], household:['solo','couple','older_kids'], existing_pets:['none','has_dog'], preference:['dog','either'] },
+    reasons:{ living:{ house:'Has a yard for Luna to run in', house_noyard:'A park-loving girl — walkable neighborhoods work great', rural:'Wide open spaces — Luna\'s dream!', apartment:null }, activity:{ high:'Luna needs an active owner — you\'re a perfect match!', very_high:'High energy? Luna will keep up every step', medium:'Daily walks are exactly Luna\'s pace' }, household:{ older_kids:'Great with older kids', couple:'Loves family environments', solo:'Will become your most devoted companion' }, existing_pets:{ none:'Luna thrives as the only pet', has_dog:'Passed shelter dog introductions with ease' }, preference:{ dog:'A dog person — Luna is your girl', either:'Luna\'s personality matches what you\'re looking for' } },
+  },
+  {
+    id:'buddy', name:'Buddy', breed:'Border Collie Mix', age:'3 yrs', gender:'Male', type:'dog',
+    img:'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=500&q=80',
+    tags:{ living:['house','rural'], activity:['high','very_high'], household:['solo','couple','older_kids'], existing_pets:['none','has_dog'], preference:['dog','either'] },
+    reasons:{ living:{ house:'A yard is ideal for Buddy\'s energy', rural:'Buddy would thrive with open land to explore' }, activity:{ high:'Buddy needs vigorous daily exercise — you match perfectly', very_high:'Buddy is built for your lifestyle', medium:null }, household:{ solo:'Buddy bonds deeply with one person', couple:'Loves a devoted pair', older_kids:'Great with kids 8+' }, existing_pets:{ none:'Does best as the solo pet', has_dog:'Good with dogs after proper introductions' }, preference:{ dog:'A dog lover — Buddy is brilliantly loyal', either:'Buddy\'s intelligence makes him one of a kind' } },
+  },
+  {
+    id:'max', name:'Max', breed:'Golden Retriever', age:'1 yr', gender:'Male', type:'dog',
+    img:'https://images.unsplash.com/photo-1583511655826-05700d52f4d9?w=500&q=80',
+    tags:{ living:['house','house_noyard','rural'], activity:['medium','high'], household:['solo','couple','young_kids','older_kids'], existing_pets:['none','has_dog','has_cat','has_both'], preference:['dog','either'] },
+    reasons:{ living:{ house:'A yard is perfect for a playful pup like Max', house_noyard:'Max loves park adventures', rural:'Max would love the space' }, activity:{ medium:'Max is energetic but not exhausting — great match', high:'Max keeps up with active owners easily' }, household:{ young_kids:'Max is gentle and patient with little ones', older_kids:'Loves to play with kids of all ages', couple:'Adores being part of a family', solo:'Will give you all his golden energy' }, existing_pets:{ none:'Max is a great starter pet', has_dog:'Successfully cat and dog tested', has_cat:'Cat-tested and gentle', has_both:'Max gets along with everyone' }, preference:{ dog:'The classic choice — Max is everything a dog should be', either:'Max\'s charm wins over everyone' } },
+  },
+  {
+    id:'mittens', name:'Mittens', breed:'Tabby Mix', age:'4 yrs', gender:'Female', type:'cat',
+    img:'https://images.unsplash.com/photo-1529778873920-4da4926a72c2?w=500&q=80',
+    tags:{ living:['apartment','house','house_noyard'], activity:['low','medium'], household:['solo','couple','young_kids','older_kids'], existing_pets:['none','has_dog','has_cat','has_both'], preference:['cat','either'] },
+    reasons:{ living:{ apartment:'Mittens is a perfect apartment cat', house:'Loves having sunny spots to nap in', house_noyard:'Indoor queen — no yard needed' }, activity:{ low:'Mittens matches your laid-back lifestyle perfectly', medium:'Calm enough for any home pace' }, household:{ solo:'She\'ll be your cozy companion', couple:'Loves gentle households', young_kids:'Cat-tested with children', older_kids:'Patient with respectful kids' }, existing_pets:{ none:'Mittens is perfect as an only pet', has_dog:'Dog-tested successfully', has_cat:'Gets along with other cats', has_both:'Multi-pet certified!' }, preference:{ cat:'You want a cat — Mittens is a classic', either:'Mittens\' calm nature is perfect for any household' } },
+  },
+  {
+    id:'whiskers', name:'Whiskers', breed:'Domestic Shorthair', age:'2 yrs', gender:'Male', type:'cat',
+    img:'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?w=500&q=80',
+    tags:{ living:['apartment','house','house_noyard'], activity:['low'], household:['solo','couple','older_kids'], existing_pets:['none','has_dog'], preference:['cat','either'] },
+    reasons:{ living:{ apartment:'Whiskers is the ideal apartment companion', house:'Happy in any indoor space' }, activity:{ low:'Whiskers is made for cozy homebodies — perfect match!' }, household:{ solo:'He\'ll be devoted entirely to you', couple:'Thrives in calm, loving homes', older_kids:'Does well with gentle older children' }, existing_pets:{ none:'Whiskers prefers to be the only pet — full attention!', has_dog:'Gets along with calm dogs' }, preference:{ cat:'A true lap cat — exactly what you\'re looking for', either:'Whiskers\' gentle energy suits any preference' } },
+  },
+  {
+    id:'cleo', name:'Cleo', breed:'Siamese Mix', age:'3 yrs', gender:'Female', type:'cat',
+    img:'https://images.unsplash.com/photo-1494256997604-768d1f608cac?w=500&q=80',
+    tags:{ living:['apartment','house','house_noyard'], activity:['low','medium'], household:['solo','couple','older_kids'], existing_pets:['none','has_dog'], preference:['cat','either'] },
+    reasons:{ living:{ apartment:'Cleo fills any space with personality', house:'Loves to explore every corner of a home' }, activity:{ low:'Cleo is an indoor adventurer — no yard required', medium:'Interactive and playful without being demanding' }, household:{ solo:'You\'ll be her whole world — she bonds deeply', couple:'Loves a devoted pair who appreciate her personality', older_kids:'Good with gentle older children' }, existing_pets:{ none:'Cleo wants to be your only cat — but shines as the star', has_dog:'Successfully introduced to calm dogs' }, preference:{ cat:'You love cats — Cleo will make sure you love her most', either:'Cleo\'s personality is unforgettable' } },
+  },
+];
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let answers  = {};
+let currentQ = 0;
+
+// ── Screens ───────────────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('screen-' + id);
+  el.classList.add('active');
+  el.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+// ── Start ─────────────────────────────────────────────────────────────────────
+function startQuiz() {
+  currentQ = 0;
+  answers = {};
+  showScreen('quiz');
+  renderQuestion();
+}
+
+// ── Render one question ───────────────────────────────────────────────────────
+function renderQuestion() {
+  const q   = QUESTIONS[currentQ];
+  const pct = Math.round((currentQ / QUESTIONS.length) * 100);
+
+  document.getElementById('progressText').textContent = `Question ${currentQ + 1} of ${QUESTIONS.length}`;
+  document.getElementById('progressPct').textContent  = pct + '%';
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  const selected = answers[q.id] || null;
+
+  let optionsHtml = q.options.map(opt => `
+    <button class="option-btn ${selected === opt.value ? 'selected' : ''}"
+            onclick="selectOption('${q.id}','${opt.value}',this)">
+      <div class="opt-icon">${opt.icon}</div>
+      <div>
+        <div class="opt-label">${opt.label}</div>
+        ${opt.sub ? `<div class="opt-sub">${opt.sub}</div>` : ''}
+      </div>
+    </button>
+  `).join('');
+
+  const isLast   = currentQ === QUESTIONS.length - 1;
+  const hasAnswer = !!selected;
+
+  document.getElementById('questionCard').innerHTML = `
+    <div class="q-step-badge">Step ${currentQ + 1} of ${QUESTIONS.length}</div>
+    <div class="q-text">${q.text}</div>
+    ${q.sub ? `<div class="q-sub">${q.sub}</div>` : ''}
+    <div class="options-grid cols-${q.cols}">${optionsHtml}</div>
+    <div class="q-nav">
+      <button class="btn-prev" onclick="prevQuestion()" ${currentQ === 0 ? 'disabled' : ''}>← Back</button>
+      <button class="btn-next" id="nextBtn" onclick="nextQuestion()" ${!hasAnswer ? 'disabled' : ''}>
+        ${isLast ? '🎯 See My Matches' : 'Next →'}
+      </button>
+    </div>
+  `;
+}
+
+// ── Select an option ──────────────────────────────────────────────────────────
+function selectOption(qId, value, btn) {
+  answers[qId] = value;
+  // Update visual
+  btn.closest('.options-grid').querySelectorAll('.option-btn').forEach(b => {
+    b.classList.remove('selected');
+    b.querySelector('.opt-icon').style.background = '';
+    b.querySelector('.opt-icon').style.color = '';
+  });
+  btn.classList.add('selected');
+  btn.querySelector('.opt-icon').style.background = 'var(--sky-500)';
+  btn.querySelector('.opt-icon').style.color = '#fff';
+  // Enable next button
+  const nextBtn = document.getElementById('nextBtn');
+  if (nextBtn) nextBtn.disabled = false;
+}
+
+function prevQuestion() {
+  if (currentQ > 0) { currentQ--; renderQuestion(); }
+}
+
+function nextQuestion() {
+  const q = QUESTIONS[currentQ];
+  if (!answers[q.id]) return;
+  if (currentQ < QUESTIONS.length - 1) {
+    currentQ++;
+    renderQuestion();
+  } else {
+    showResults();
+  }
+}
+
+// ── Scoring ───────────────────────────────────────────────────────────────────
+function scorePet(pet) {
+  let score = 0;
+  let reasons = [];
+  const maxPerQ = 20; // 5 questions × 20 = 100 max
+
+  QUESTIONS.forEach(q => {
+    const answer = answers[q.id];
+    if (!answer) return;
+    const petTags = pet.tags[q.id] || [];
+    if (petTags.includes(answer)) {
+      score += maxPerQ;
+      const reason = pet.reasons[q.id]?.[answer];
+      if (reason) reasons.push(reason);
+    } else {
+      // Partial credit for close matches
+      score += 5;
+    }
+  });
+
+  // Slight randomisation to avoid identical scores between pets
+  score = Math.min(99, Math.max(40, score + (Math.random() * 4 - 2)));
+  return { score: Math.round(score), reasons: reasons.slice(0, 3) };
+}
+
+// ── Show results ──────────────────────────────────────────────────────────────
+function showResults() {
+  // Update progress to 100%
+  document.getElementById('progressFill').style.width = '100%';
+  document.getElementById('progressPct').textContent  = '100%';
+
+  // Score and sort
+  const scored = PETS
+    .filter(p => {
+      // If user has a hard preference, filter out the other type
+      const pref = answers.preference;
+      if (pref === 'dog') return p.type === 'dog';
+      if (pref === 'cat') return p.type === 'cat';
+      return true;
+    })
+    .map(p => ({ ...p, ...scorePet(p) }))
+    .sort((a, b) => b.score - a.score);
+
+  const top = scored.slice(0, 3);
+  const ranks = ['gold','silver','bronze'];
+  const rankLabels = ['🥇 Best Match','🥈 2nd Match','🥉 3rd Match'];
+
+  const container = document.getElementById('resultsContainer');
+  container.innerHTML = top.map((pet, i) => `
+    <div class="result-card">
+      <div class="result-photo">
+        <img src="${pet.img}" alt="${pet.name}"/>
+        <div class="rank-badge ${ranks[i]}">${rankLabels[i]}</div>
+      </div>
+      <div class="result-body">
+        <div class="result-top">
+          <div>
+            <div class="result-name">${pet.name}</div>
+            <div class="result-breed">${pet.breed} · ${pet.age} · ${pet.gender}</div>
+          </div>
+          <div class="score-wrap">
+            <div class="score-num">${pet.score}%</div>
+            <div class="score-label">Match</div>
+          </div>
+        </div>
+        <div class="match-reasons">
+          ${pet.reasons.map(r => `<div class="match-reason">${r}</div>`).join('')}
+        </div>
+        <div class="result-actions">
+          <a href="pet-profile.html?pet=${pet.id}" class="btn-view-profile">View Full Profile →</a>
+          <a href="pet-profile.html?pet=${pet.id}" class="btn-adopt-result">❤️ Adopt</a>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  showScreen('results');
+  launchConfetti();
+  window.scrollTo({ top: 0, behavior:'smooth' });
+}
+
+function retakeQuiz() {
+  answers  = {};
+  currentQ = 0;
+  showScreen('intro');
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+// ── Confetti ──────────────────────────────────────────────────────────────────
+const canvas = document.getElementById('confetti-canvas');
+const ctx    = canvas.getContext('2d');
+let particles = [], frame;
+function launchConfetti() {
+  canvas.style.display = 'block';
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  particles = [];
+  const colors = ['#38bdf8','#0ea5e9','#7dd3fc','#bae6fd','#fbbf24','#34d399','#a78bfa','#f472b6','#fff'];
+  for (let i = 0; i < 160; i++) {
+    particles.push({ x:Math.random()*canvas.width, y:Math.random()*-canvas.height, w:Math.random()*10+5, h:Math.random()*5+3, color:colors[Math.floor(Math.random()*colors.length)], angle:Math.random()*Math.PI*2, spin:(Math.random()-.5)*.2, vx:(Math.random()-.5)*3, vy:Math.random()*4+2, alpha:1 });
+  }
+  animateConfetti();
+  setTimeout(() => { cancelAnimationFrame(frame); canvas.style.display='none'; }, 3500);
+}
+function animateConfetti() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  particles.forEach(p => {
+    p.y+=p.vy; p.x+=p.vx; p.angle+=p.spin;
+    if(p.y>canvas.height*.7) p.alpha-=.025;
+    ctx.save(); ctx.globalAlpha=Math.max(0,p.alpha); ctx.translate(p.x,p.y); ctx.rotate(p.angle);
+    ctx.fillStyle=p.color; ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h); ctx.restore();
+  });
+  frame = requestAnimationFrame(animateConfetti);
+}
+</script>
+</body>
+</html>

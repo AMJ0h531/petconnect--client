@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pet Profile — PetConnect+</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --sky-50:#f0f9ff; --sky-100:#e0f2fe; --sky-200:#bae6fd;
+      --sky-400:#38bdf8; --sky-500:#0ea5e9; --sky-600:#0284c7;
+      --sky-700:#0369a1; --sky-900:#0c4a6e;
+      --white:#ffffff; --text:#0c2d45; --text-soft:#4a7fa0;
+      --border:#bae6fd; --card-bg:#ffffff;
+      --green:#059669; --green-light:#d1fae5;
+      --shadow:0 4px 24px rgba(14,165,233,.10);
+      --shadow-hover:0 14px 40px rgba(14,165,233,.22);
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family:'DM Sans',sans-serif; background:var(--sky-50); color:var(--text); min-height:100vh; }
+
+    /* ── NAV ── */
+    nav {
+      position:sticky; top:0; z-index:200;
+      background:rgba(240,249,255,.96); backdrop-filter:blur(10px);
+      border-bottom:1.5px solid var(--sky-200);
+      padding:0 48px; display:flex; align-items:center; justify-content:space-between; height:68px;
+    }
+    .nav-logo { font-family:'Playfair Display',serif; font-size:1.45rem; font-weight:900; color:var(--sky-700); letter-spacing:-.5px; text-decoration:none; display:flex; align-items:center; gap:6px; }
+    .nav-logo .plus { background:var(--sky-500); color:#fff; font-size:.82rem; font-family:'DM Sans',sans-serif; font-weight:800; padding:2px 8px; border-radius:7px; }
+    .nav-links { display:flex; gap:6px; list-style:none; }
+    .nav-links a { text-decoration:none; font-size:.9rem; font-weight:500; color:var(--text-soft); padding:7px 18px; border-radius:99px; transition:background .2s,color .2s; }
+    .nav-links a:hover { background:var(--sky-100); color:var(--sky-700); }
+    .nav-links a.active { background:var(--sky-500); color:#fff; }
+
+    /* ── BACK BAR ── */
+    .back-bar { padding:20px 48px 0; }
+    .btn-back { display:inline-flex; align-items:center; gap:8px; font-size:.88rem; font-weight:600; color:var(--sky-600); text-decoration:none; padding:8px 18px; border:1.5px solid var(--sky-200); border-radius:99px; background:#fff; transition:background .2s,border-color .2s; cursor:pointer; }
+    .btn-back:hover { background:var(--sky-100); border-color:var(--sky-400); }
+
+    /* ── PROFILE HERO ── */
+    .profile-hero {
+      display:grid; grid-template-columns:1fr 1fr; gap:0;
+      min-height:480px; margin:24px 48px 0; border-radius:24px; overflow:hidden;
+      box-shadow:var(--shadow-hover); border:1.5px solid var(--sky-200);
+    }
+    .profile-photo { position:relative; overflow:hidden; min-height:400px; }
+    .profile-photo img { width:100%; height:100%; object-fit:cover; display:block; }
+    .profile-photo-overlay { position:absolute; inset:0; background:linear-gradient(to right, transparent 60%, rgba(255,255,255,.15)); }
+
+    .profile-info {
+      background:#fff; padding:44px 44px 36px;
+      display:flex; flex-direction:column; justify-content:space-between;
+    }
+    .profile-info-top { display:flex; flex-direction:column; gap:16px; }
+
+    .profile-badges { display:flex; gap:8px; flex-wrap:wrap; }
+    .badge-available { display:inline-flex; align-items:center; gap:5px; background:var(--green-light); color:var(--green); font-size:.72rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:5px 13px; border-radius:99px; border:1.5px solid rgba(5,150,105,.2); }
+    .badge-available::before { content:''; width:7px; height:7px; background:var(--green); border-radius:50%; display:inline-block; animation:pulse 1.8s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.75)} }
+    .badge-adopted { display:inline-flex; align-items:center; gap:5px; background:#ede9fe; color:#7c3aed; font-size:.72rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:5px 13px; border-radius:99px; border:1.5px solid rgba(124,58,237,.2); }
+    .badge-type { background:var(--sky-100); color:var(--sky-700); font-size:.72rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:5px 13px; border-radius:99px; border:1.5px solid var(--sky-200); }
+
+    .profile-name { font-family:'Playfair Display',serif; font-size:2.8rem; font-weight:900; color:var(--sky-900); line-height:1.05; }
+    .profile-breed { font-size:1rem; color:var(--text-soft); font-weight:500; }
+
+    .profile-quick-facts { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:4px; }
+    .fact { background:var(--sky-50); border:1.5px solid var(--sky-200); border-radius:12px; padding:12px 16px; }
+    .fact-label { font-size:.72rem; font-weight:700; color:var(--sky-600); text-transform:uppercase; letter-spacing:.8px; margin-bottom:3px; }
+    .fact-value { font-size:.95rem; font-weight:600; color:var(--text); }
+
+    .profile-tags { display:flex; flex-wrap:wrap; gap:7px; }
+    .tag { background:var(--sky-50); color:var(--sky-700); font-size:.78rem; font-weight:600; padding:4px 13px; border-radius:99px; border:1px solid var(--sky-200); }
+
+    .profile-actions { display:flex; gap:12px; margin-top:24px; flex-wrap:wrap; }
+    .btn-adopt-main { flex:1; background:var(--sky-500); color:#fff; border:none; cursor:pointer; padding:14px 0; border-radius:99px; font-size:1rem; font-weight:800; transition:background .2s,transform .15s,box-shadow .2s; text-align:center; text-decoration:none; box-shadow:0 4px 18px rgba(14,165,233,.35); }
+    .btn-adopt-main:hover { background:var(--sky-600); transform:translateY(-2px); }
+    .btn-adopt-main:disabled, .btn-adopt-main.adopted { background:#c4b5fd; cursor:default; box-shadow:none; transform:none; }
+    .btn-contact { background:transparent; color:var(--sky-700); border:2px solid var(--sky-200); cursor:pointer; padding:13px 24px; border-radius:99px; font-size:.95rem; font-weight:700; transition:border-color .2s,background .2s; text-decoration:none; white-space:nowrap; }
+    .btn-contact:hover { border-color:var(--sky-400); background:var(--sky-50); }
+
+    /* ── BODY CONTENT ── */
+    .profile-body { max-width:1100px; margin:40px auto; padding:0 48px 80px; display:grid; grid-template-columns:2fr 1fr; gap:28px; align-items:start; }
+
+    /* Cards */
+    .info-card { background:#fff; border:1.5px solid var(--sky-200); border-radius:20px; padding:28px 30px; box-shadow:var(--shadow); }
+    .info-card + .info-card { margin-top:20px; }
+    .card-title { font-family:'Playfair Display',serif; font-size:1.15rem; font-weight:700; color:var(--sky-900); margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+
+    /* Bio */
+    .bio-text { font-size:.95rem; color:var(--text-soft); line-height:1.75; }
+
+    /* Personality traits */
+    .traits { display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
+    .trait { background:linear-gradient(135deg,var(--sky-100),var(--sky-50)); color:var(--sky-700); font-size:.82rem; font-weight:700; padding:6px 16px; border-radius:99px; border:1.5px solid var(--sky-200); }
+
+    /* Health table */
+    .health-table { width:100%; border-collapse:collapse; }
+    .health-table tr:not(:last-child) td { border-bottom:1px solid var(--sky-100); }
+    .health-table td { padding:10px 6px; font-size:.88rem; vertical-align:top; }
+    .health-table td:first-child { font-weight:700; color:var(--sky-700); width:40%; white-space:nowrap; }
+    .health-table td:last-child { color:var(--text); }
+    .health-badge { display:inline-block; font-size:.72rem; font-weight:700; padding:2px 10px; border-radius:99px; }
+    .hb-green { background:var(--green-light); color:var(--green); }
+    .hb-yellow { background:#fef9c3; color:#854d0e; }
+    .hb-blue { background:var(--sky-100); color:var(--sky-700); }
+
+    /* Sidebar */
+    .sidebar { display:flex; flex-direction:column; gap:20px; }
+
+    /* Shelter card */
+    .shelter-card { background:linear-gradient(135deg,var(--sky-700),var(--sky-900)); border-radius:20px; padding:28px; color:#fff; box-shadow:var(--shadow-hover); }
+    .shelter-card h3 { font-family:'Playfair Display',serif; font-size:1.05rem; font-weight:700; margin-bottom:4px; }
+    .shelter-name { font-size:1.1rem; font-weight:800; margin-bottom:16px; }
+    .shelter-detail { font-size:.83rem; color:rgba(186,230,253,.85); display:flex; align-items:flex-start; gap:9px; margin-bottom:10px; line-height:1.5; }
+    .shelter-detail span:first-child { flex-shrink:0; font-size:1rem; }
+    .btn-shelter-contact { display:block; background:var(--sky-400); color:var(--sky-900); text-align:center; padding:12px; border-radius:99px; font-size:.9rem; font-weight:800; text-decoration:none; margin-top:20px; transition:background .2s,transform .15s; }
+    .btn-shelter-contact:hover { background:#fff; transform:translateY(-2px); }
+    .btn-shelter-call { display:block; background:transparent; color:rgba(186,230,253,.9); text-align:center; padding:11px; border-radius:99px; font-size:.9rem; font-weight:700; text-decoration:none; border:1.5px solid rgba(186,230,253,.3); margin-top:10px; transition:background .2s,border-color .2s; }
+    .btn-shelter-call:hover { background:rgba(255,255,255,.1); border-color:rgba(186,230,253,.6); }
+
+    /* More pets */
+    .more-pets-grid { display:flex; flex-direction:column; gap:12px; }
+    .mini-pet { display:flex; gap:12px; align-items:center; text-decoration:none; padding:10px; border-radius:14px; border:1.5px solid var(--sky-200); background:#fff; transition:box-shadow .2s,transform .2s; }
+    .mini-pet:hover { box-shadow:var(--shadow); transform:translateY(-2px); }
+    .mini-pet img { width:56px; height:56px; border-radius:10px; object-fit:cover; flex-shrink:0; }
+    .mini-pet-info { flex:1; }
+    .mini-pet-name { font-weight:700; font-size:.9rem; color:var(--sky-900); }
+    .mini-pet-meta { font-size:.78rem; color:var(--text-soft); margin-top:2px; }
+
+    /* Contact modal */
+    .overlay { position:fixed; inset:0; background:rgba(12,45,69,.55); z-index:500; display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity .3s; backdrop-filter:blur(4px); }
+    .overlay.open { opacity:1; pointer-events:all; }
+    .modal { background:#fff; border-radius:24px; padding:40px 36px; max-width:480px; width:100%; transform:scale(.92) translateY(20px); transition:transform .35s cubic-bezier(.34,1.56,.64,1); box-shadow:0 24px 60px rgba(12,45,69,.25); }
+    .overlay.open .modal { transform:scale(1) translateY(0); }
+    .modal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+    .modal-header h2 { font-family:'Playfair Display',serif; font-size:1.4rem; font-weight:900; color:var(--sky-900); }
+    .modal-close { background:none; border:none; font-size:1.4rem; cursor:pointer; color:var(--text-soft); line-height:1; padding:4px; }
+    .modal-close:hover { color:var(--text); }
+    .modal form { display:flex; flex-direction:column; gap:14px; }
+    .form-group { display:flex; flex-direction:column; gap:5px; }
+    .form-group label { font-size:.78rem; font-weight:700; color:var(--sky-700); text-transform:uppercase; letter-spacing:.8px; }
+    .form-group input, .form-group textarea, .form-group select { background:var(--sky-50); border:1.5px solid var(--sky-200); border-radius:10px; padding:10px 14px; font-family:'DM Sans',sans-serif; font-size:.92rem; color:var(--text); transition:border-color .2s,box-shadow .2s; outline:none; width:100%; }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color:var(--sky-500); box-shadow:0 0 0 3px rgba(14,165,233,.12); }
+    .form-group textarea { resize:vertical; min-height:90px; }
+    .btn-submit { background:var(--sky-500); color:#fff; border:none; cursor:pointer; padding:13px; border-radius:99px; font-size:.95rem; font-weight:700; transition:background .2s,transform .15s; box-shadow:0 4px 14px rgba(14,165,233,.28); }
+    .btn-submit:hover { background:var(--sky-600); transform:translateY(-1px); }
+
+    /* Toast */
+    .toast-container { position:fixed; bottom:28px; right:28px; z-index:9999; display:flex; flex-direction:column; gap:10px; pointer-events:none; }
+    .toast { background:var(--sky-900); color:#fff; padding:14px 22px; border-radius:14px; font-size:.9rem; font-weight:500; box-shadow:0 8px 28px rgba(12,45,69,.35); display:flex; align-items:center; gap:10px; transform:translateX(120%); transition:transform .4s cubic-bezier(.34,1.56,.64,1); pointer-events:auto; max-width:340px; }
+    .toast.show { transform:translateX(0); }
+    .toast.success { background:#065f46; border-left:4px solid #10b981; }
+    .toast.info { background:var(--sky-700); border-left:4px solid var(--sky-400); }
+    .toast.adopt { background:#4c1d95; border-left:4px solid #a78bfa; }
+
+    /* Confetti */
+    #confetti-canvas { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9998; display:none; }
+
+    @media(max-width:900px) {
+      nav { padding:0 20px; }
+      .back-bar { padding:16px 20px 0; }
+      .profile-hero { grid-template-columns:1fr; margin:16px 20px 0; }
+      .profile-photo { min-height:280px; }
+      .profile-info { padding:28px 24px; }
+      .profile-body { grid-template-columns:1fr; padding:24px 20px 60px; }
+      .profile-name { font-size:2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- CONTACT MODAL -->
+<div class="overlay" id="contactModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>📬 Contact the Shelter</h2>
+      <button class="modal-close" onclick="closeContactModal()">✕</button>
+    </div>
+    <p style="font-size:.88rem;color:var(--text-soft);margin-bottom:18px;line-height:1.6;">Send a message to <strong id="modalShelterName">Happy Paws Shelter</strong> about <strong id="modalPetName">this pet</strong>.</p>
+    <form onsubmit="submitContact(event)">
+      <div class="form-group"><label>Your Name</label><input type="text" id="c-name" placeholder="Full name" required/></div>
+      <div class="form-group"><label>Your Email</label><input type="email" id="c-email" placeholder="you@email.com" required/></div>
+      <div class="form-group"><label>Phone (optional)</label><input type="tel" id="c-phone" placeholder="(614) 555-0100"/></div>
+      <div class="form-group">
+        <label>Reason for Contact</label>
+        <select id="c-reason">
+          <option>I'd like to adopt this pet</option>
+          <option>I have questions about this pet</option>
+          <option>I'd like to schedule a visit</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Message</label><textarea id="c-message" placeholder="Tell us about yourself and why you're interested..."></textarea></div>
+      <button type="submit" class="btn-submit">Send Message to Shelter</button>
+    </form>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">PetConnect<span class="plus">+</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html#dogs">Dogs</a></li>
+    <li><a href="index.html#cats">Cats</a></li>
+    <li><a href="match-quiz.html">Match Quiz</a></li>
+    <li><a href="index.html#reminders">Care Reminders</a></li>
+    <li><a href="index.html" class="active">Browse All</a></li>
+  </ul>
+</nav>
+
+<!-- BACK -->
+<div class="back-bar">
+  <a href="index.html" class="btn-back">← Back to Browse</a>
+</div>
+
+<!-- PROFILE HERO -->
+<div class="profile-hero" id="profileHero">
+  <div class="profile-photo">
+    <img id="profileImg" src="" alt="Pet photo"/>
+    <div class="profile-photo-overlay"></div>
+  </div>
+  <div class="profile-info">
+    <div class="profile-info-top">
+      <div class="profile-badges">
+        <span class="badge-available" id="statusBadge">Available</span>
+        <span class="badge-type" id="typeBadge">Dog</span>
+      </div>
+      <div>
+        <div class="profile-name" id="profileName">Luna</div>
+        <div class="profile-breed" id="profileBreed">Labrador Mix · 2 years old · Female</div>
+      </div>
+      <div class="profile-quick-facts" id="quickFacts"></div>
+      <div class="profile-tags" id="profileTags"></div>
+    </div>
+    <div class="profile-actions">
+      <button class="btn-adopt-main" id="adoptBtn" onclick="handleAdopt()">❤️ Adopt Me</button>
+      <button class="btn-contact" onclick="openContactModal()">📬 Contact Shelter</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE BODY -->
+<div class="profile-body">
+
+  <!-- LEFT COLUMN -->
+  <div>
+    <!-- Bio -->
+    <div class="info-card">
+      <div class="card-title">🐾 About <span id="bioName">Luna</span></div>
+      <p class="bio-text" id="bioParagraph"></p>
+      <div class="traits" id="traitsList" style="margin-top:18px;"></div>
+    </div>
+
+    <!-- Health Records -->
+    <div class="info-card" style="margin-top:20px;">
+      <div class="card-title">🏥 Health & Vaccination Records</div>
+      <table class="health-table" id="healthTable"></table>
+    </div>
+
+    <!-- Good With -->
+    <div class="info-card" style="margin-top:20px;">
+      <div class="card-title">🏡 Good With</div>
+      <div id="goodWithGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN (sidebar) -->
+  <div class="sidebar">
+
+    <!-- Shelter Info -->
+    <div class="shelter-card">
+      <h3>Adoption Center</h3>
+      <div class="shelter-name" id="shelterName">Happy Paws Shelter</div>
+      <div class="shelter-detail"><span>📍</span><span id="shelterAddress">123 Main St, Columbus, OH 43215</span></div>
+      <div class="shelter-detail"><span>📞</span><span id="shelterPhone">(614) 555-0199</span></div>
+      <div class="shelter-detail"><span>🕐</span><span id="shelterHours">Mon–Sat 9am–6pm · Sun 11am–4pm</span></div>
+      <div class="shelter-detail"><span>📧</span><span id="shelterEmail">adopt@happypaws.org</span></div>
+      <a href="#" class="btn-shelter-contact" onclick="openContactModal();return false;">Send a Message</a>
+      <a href="#" class="btn-shelter-call" id="shelterCallLink">📞 Call the Shelter</a>
+    </div>
+
+    <!-- More Pets from this Shelter -->
+    <div class="info-card">
+      <div class="card-title">🐶 More from this Shelter</div>
+      <div class="more-pets-grid" id="morePets"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── Pet data store ────────────────────────────────────────────────────────────
+// In production this comes from your backend API (/api/pets/:id)
+// For now all pets are defined here and the profile is driven by ?pet=ID in the URL
+
+const PETS = {
+  luna: {
+    id: 'luna', name: 'Luna', type: 'Dog', breed: 'Labrador Mix',
+    age: '2 years', gender: 'Female', size: 'Large', color: 'Golden',
+    img: 'https://images.unsplash.com/photo-1601979031925-424e53b6caaa?w=900&q=85',
+    status: 'available',
+    tags: ['Good with kids','Dog friendly','Cat friendly','Outdoor lover','Leash trained'],
+    bio: `Luna is an absolute ray of sunshine wrapped in golden fur. She came to Happy Paws Shelter after her previous family relocated overseas, so she arrived already house-trained, leash-savvy, and full of love. From the moment she walks into a room she wins every heart with her goofy grin and wagging tail that never seems to stop.\n\nShe thrives on adventure — early morning jogs, afternoon fetch in the park, lazy evenings curled on the couch — Luna is equally happy with all of it as long as she's with her people. She gets along beautifully with children and other dogs, and has been successfully cat-tested at the shelter. Luna is looking for a family who can match her enthusiasm for life and give her the forever home she deserves.`,
+    traits: ['Affectionate','Energetic','Playful','Curious','Loyal','Social'],
+    goodWith: [
+      { icon:'👶', label:'Young Children', ok:true },
+      { icon:'🐕', label:'Other Dogs', ok:true },
+      { icon:'🐈', label:'Cats', ok:true },
+      { icon:'🏠', label:'Apartment OK', ok:false },
+      { icon:'🌲', label:'Outdoor Space', ok:true },
+      { icon:'🧒', label:'Older Kids', ok:true },
+    ],
+    health: [
+      { label:'Spayed / Neutered', value:'Yes', badge:'hb-green' },
+      { label:'Vaccinations', value:'Up to date — Rabies, DHPP, Bordetella', badge:'hb-green' },
+      { label:'Microchipped', value:'Yes — ID #985141002345678', badge:'hb-green' },
+      { label:'Flea & Tick', value:'Treated monthly', badge:'hb-green' },
+      { label:'Heartworm', value:'Negative (tested Jan 2026)', badge:'hb-green' },
+      { label:'Dental', value:'Last cleaned Oct 2025', badge:'hb-blue' },
+      { label:'Known Conditions', value:'None', badge:'hb-green' },
+      { label:'Last Vet Visit', value:'March 2026', badge:'hb-blue' },
+    ],
+    facts: [
+      { label:'Shelter ID', value:'#HP-1042' },
+      { label:'Weight', value:'55 lbs' },
+      { label:'Coat', value:'Short, golden' },
+      { label:'Energy', value:'High' },
+    ],
+    shelter: { name:'Happy Paws Shelter', address:'123 Main St, Columbus, OH 43215', phone:'(614) 555-0199', email:'adopt@happypaws.org', hours:'Mon–Sat 9am–6pm · Sun 11am–4pm' },
+  },
+
+  buddy: {
+    id: 'buddy', name: 'Buddy', type: 'Dog', breed: 'Border Collie Mix',
+    age: '3 years', gender: 'Male', size: 'Medium', color: 'Black & White',
+    img: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=900&q=85',
+    status: 'available',
+    tags: ['Good with kids','Dog friendly','Indoor','Smart','Trainable'],
+    bio: `Buddy is the kind of dog who will figure out how to open your fridge and then sit waiting politely to see your reaction. As a Border Collie mix, his intelligence is off the charts — he mastered sit, stay, come, shake, and roll-over within his first week at the shelter. He needs a home that can channel that brilliant mind.\n\nBuddy loves puzzle toys, agility courses, and long hikes where he can explore every trail. He's wonderful with older children who can match his playful spirit. He currently lives with another dog at his foster home and does great — just needs a proper introduction. Buddy is ready to be someone's most loyal, entertaining, and clever best friend.`,
+    traits: ['Intelligent','Loyal','Energetic','Focused','Playful','Alert'],
+    goodWith: [
+      { icon:'👶', label:'Young Children', ok:false },
+      { icon:'🐕', label:'Other Dogs', ok:true },
+      { icon:'🐈', label:'Cats', ok:false },
+      { icon:'🏠', label:'Apartment OK', ok:false },
+      { icon:'🌲', label:'Outdoor Space', ok:true },
+      { icon:'🧒', label:'Older Kids', ok:true },
+    ],
+    health: [
+      { label:'Spayed / Neutered', value:'Yes', badge:'hb-green' },
+      { label:'Vaccinations', value:'Up to date — Rabies, DHPP, Bordetella', badge:'hb-green' },
+      { label:'Microchipped', value:'Yes — ID #985141002345699', badge:'hb-green' },
+      { label:'Flea & Tick', value:'Treated monthly', badge:'hb-green' },
+      { label:'Heartworm', value:'Negative (tested Feb 2026)', badge:'hb-green' },
+      { label:'Dental', value:'Good condition', badge:'hb-blue' },
+      { label:'Known Conditions', value:'Mild hip sensitivity — monitored', badge:'hb-yellow' },
+      { label:'Last Vet Visit', value:'February 2026', badge:'hb-blue' },
+    ],
+    facts: [
+      { label:'Shelter ID', value:'#HP-1091' },
+      { label:'Weight', value:'42 lbs' },
+      { label:'Coat', value:'Medium, B&W' },
+      { label:'Energy', value:'Very High' },
+    ],
+    shelter: { name:'Happy Paws Shelter', address:'123 Main St, Columbus, OH 43215', phone:'(614) 555-0199', email:'adopt@happypaws.org', hours:'Mon–Sat 9am–6pm · Sun 11am–4pm' },
+  },
+
+  max: {
+    id: 'max', name: 'Max', type: 'Dog', breed: 'Golden Retriever',
+    age: '1 year', gender: 'Male', size: 'Large', color: 'Golden',
+    img: 'https://images.unsplash.com/photo-1583511655826-05700d52f4d9?w=900&q=85',
+    status: 'available',
+    tags: ['Puppy','Playful','Good with kids','Eager to please'],
+    bio: `Max is a puppy in the truest sense — boundless joy in a fluffy golden package. At just one year old, he's past the frantic puppy phase but still has all the exuberance and wonder of youth. He was surrendered when his previous owner developed allergies, not for any behavioral reason, and it shows — he's already house-trained and knows basic commands.\n\nMax loves everyone he meets. Children, adults, strangers on the street — his tail wags for all of them. He's currently being fostered with a family that includes a toddler and two cats, and he's been an absolute gentleman. Give Max a sunny yard, daily walks, and lots of cuddles and he will repay you with a lifetime of golden-hearted devotion.`,
+    traits: ['Gentle','Friendly','Eager','Loving','Patient','Adaptable'],
+    goodWith: [
+      { icon:'👶', label:'Young Children', ok:true },
+      { icon:'🐕', label:'Other Dogs', ok:true },
+      { icon:'🐈', label:'Cats', ok:true },
+      { icon:'🏠', label:'Apartment OK', ok:false },
+      { icon:'🌲', label:'Outdoor Space', ok:true },
+      { icon:'🧒', label:'Older Kids', ok:true },
+    ],
+    health: [
+      { label:'Spayed / Neutered', value:'Yes', badge:'hb-green' },
+      { label:'Vaccinations', value:'Up to date — Rabies, DHPP, Bordetella', badge:'hb-green' },
+      { label:'Microchipped', value:'Yes — ID #985141002345711', badge:'hb-green' },
+      { label:'Flea & Tick', value:'Treated monthly', badge:'hb-green' },
+      { label:'Heartworm', value:'Negative (tested Mar 2026)', badge:'hb-green' },
+      { label:'Dental', value:'Excellent — puppy teeth', badge:'hb-green' },
+      { label:'Known Conditions', value:'None', badge:'hb-green' },
+      { label:'Last Vet Visit', value:'April 2026', badge:'hb-blue' },
+    ],
+    facts: [
+      { label:'Shelter ID', value:'#HP-1108' },
+      { label:'Weight', value:'62 lbs' },
+      { label:'Coat', value:'Long, golden' },
+      { label:'Energy', value:'High' },
+    ],
+    shelter: { name:'Happy Paws Shelter', address:'123 Main St, Columbus, OH 43215', phone:'(614) 555-0199', email:'adopt@happypaws.org', hours:'Mon–Sat 9am–6pm · Sun 11am–4pm' },
+  },
+
+  mittens: {
+    id: 'mittens', name: 'Mittens', type: 'Cat', breed: 'Tabby Mix',
+    age: '4 years', gender: 'Female', size: 'Medium', color: 'Orange Tabby',
+    img: 'https://images.unsplash.com/photo-1529778873920-4da4926a72c2?w=900&q=85',
+    status: 'available',
+    tags: ['Good with kids','Dog friendly','Cat friendly','Indoor','Calm'],
+    bio: `Mittens earned her name the moment the shelter staff spotted her perfectly white paws against her bold orange tabby coat. She's a confident, curious cat who came to us after her elderly owner passed away. Despite the upheaval, Mittens adjusted quickly — she's clearly been loved and socialized well.\n\nShe enjoys sunny windowsills, slow-blinking contests, and the occasional dramatic flop on your laptop keyboard. Mittens is dog-tested and cat-tested, making her an ideal addition to a multi-pet household. She's affectionate on her own terms — not a velcro cat, but absolutely a come-find-you-when-she-wants-cuddles cat. She would thrive in a calm home where she can be her regal, wonderful self.`,
+    traits: ['Independent','Affectionate','Curious','Calm','Confident','Gentle'],
+    goodWith: [
+      { icon:'👶', label:'Young Children', ok:true },
+      { icon:'🐕', label:'Dogs', ok:true },
+      { icon:'🐈', label:'Other Cats', ok:true },
+      { icon:'🏠', label:'Apartment', ok:true },
+      { icon:'🌙', label:'Low-energy Home', ok:true },
+      { icon:'🧒', label:'Older Kids', ok:true },
+    ],
+    health: [
+      { label:'Spayed / Neutered', value:'Yes', badge:'hb-green' },
+      { label:'Vaccinations', value:'Up to date — FVRCP, Rabies', badge:'hb-green' },
+      { label:'Microchipped', value:'Yes — ID #985141002345722', badge:'hb-green' },
+      { label:'Flea Treatment', value:'Treated monthly', badge:'hb-green' },
+      { label:'FIV / FeLV', value:'Negative', badge:'hb-green' },
+      { label:'Dental', value:'Cleaned Jan 2026', badge:'hb-blue' },
+      { label:'Known Conditions', value:'None', badge:'hb-green' },
+      { label:'Last Vet Visit', value:'January 2026', badge:'hb-blue' },
+    ],
+    facts: [
+      { label:'Shelter ID', value:'#HP-2031' },
+      { label:'Weight', value:'9 lbs' },
+      { label:'Coat', value:'Short, tabby' },
+      { label:'Energy', value:'Low–Medium' },
+    ],
+    shelter: { name:'Citywide Cat Rescue', address:'456 Oak Ave, Columbus, OH 43202', phone:'(614) 555-0211', email:'adopt@citywidecat.org', hours:'Tue–Sun 10am–5pm' },
+  },
+
+  whiskers: {
+    id: 'whiskers', name: 'Whiskers', type: 'Cat', breed: 'Domestic Shorthair',
+    age: '2 years', gender: 'Male', size: 'Medium', color: 'Black & White',
+    img: 'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?w=900&q=85',
+    status: 'available',
+    tags: ['Calm','Indoor','Cuddly','Lap cat','Quiet'],
+    bio: `Whiskers is the cat equivalent of a warm cup of tea on a rainy afternoon — utterly comforting, endlessly cozy, and exactly what you didn't know you needed. This dapper black-and-white gentleman was found as a stray and brought in about eight months ago. Despite a rough start, he's blossomed into one of the most affectionate cats in the shelter.\n\nWhiskers has a quiet, gentle personality. He'll happily spend an entire Sunday on the couch with you, purring loud enough to drown out the TV. He's not a fan of other cats, so he'd do best as an only pet or with a very relaxed dog. He's perfect for someone who wants a devoted, calm companion — a true lap cat who will make your home feel complete.`,
+    traits: ['Calm','Cuddly','Gentle','Quiet','Devoted','Sweet'],
+    goodWith: [
+      { icon:'👶', label:'Young Children', ok:false },
+      { icon:'🐕', label:'Calm Dogs', ok:true },
+      { icon:'🐈', label:'Other Cats', ok:false },
+      { icon:'🏠', label:'Apartment', ok:true },
+      { icon:'🌙', label:'Low-energy Home', ok:true },
+      { icon:'🧒', label:'Older Kids', ok:true },
+    ],
+    health: [
+      { label:'Spayed / Neutered', value:'Yes', badge:'hb-green' },
+      { label:'Vaccinations', value:'Up to date — FVRCP, Rabies', badge:'hb-green' },
+      { label:'Microchipped', value:'Yes — ID #985141002345733', badge:'hb-green' },
+      { label:'Flea Treatment', value:'Treated monthly', badge:'hb-green' },
+      { label:'FIV / FeLV', value:'Negative', badge:'hb-green' },
+      { label:'Dental', value:'Good condition', badge:'hb-blue' },
+      { label:'Known Conditions', value:'Mild seasonal allergies', badge:'hb-yellow' },
+      { label:'Last Vet Visit', value:'March 2026', badge:'hb-blue' },
+    ],
+    facts: [
+      { label:'Shelter ID', value:'#HP-2044' },
+      { label:'Weight', value:'11 lbs' },
+      { label:'Coat', value:'Short, tuxedo' },
+      { label:'Energy', value:'Low' },
+    ],
+    shelter: { name:'Citywide Cat Rescue', address:'456 Oak Ave, Columbus, OH 43202', phone:'(614) 555-0211', email:'adopt@citywidecat.org', hours:'Tue–Sun 10am–5pm' },
+  },
+
+  cleo: {
+    id: 'cleo', name: 'Cleo', type: 'Cat', breed: 'Siamese Mix',
+    age: '3 years', gender: 'Female', size: 'Medium', color: 'Seal Point',
+    img: 'https://images.unsplash.com/photo-1494256997604-768d1f608cac?w=900&q=85',
+    status: 'available',
+    tags: ['Vocal','Playful','Dog friendly','Interactive','Bold'],
+    bio: `Cleo does not do subtle. This stunning Siamese mix has opinions about everything — your breakfast choices, when you get out of bed, and definitely when her food bowl is empty. She'll tell you all about it in her distinctive, melodious voice and you will love every second of it.\n\nUnder that diva exterior is a deeply affectionate, fiercely loyal cat who bonds hard with her person. She's interactive and smart — she loves feather wands, crinkle balls, and figuring out how things work. She's been successfully introduced to a calm dog and did beautifully. Cleo is looking for someone who wants a true companion, not just a cat — someone who will appreciate her personality as much as her striking looks.`,
+    traits: ['Vocal','Bold','Intelligent','Loyal','Playful','Opinionated'],
+    goodWith: [
+      { icon:'👶', label:'Young Children', ok:false },
+      { icon:'🐕', label:'Calm Dogs', ok:true },
+      { icon:'🐈', label:'Other Cats', ok:false },
+      { icon:'🏠', label:'Apartment', ok:true },
+      { icon:'🌙', label:'Low-energy Home', ok:false },
+      { icon:'🧒', label:'Older Kids', ok:true },
+    ],
+    health: [
+      { label:'Spayed / Neutered', value:'Yes', badge:'hb-green' },
+      { label:'Vaccinations', value:'Up to date — FVRCP, Rabies', badge:'hb-green' },
+      { label:'Microchipped', value:'Yes — ID #985141002345744', badge:'hb-green' },
+      { label:'Flea Treatment', value:'Treated monthly', badge:'hb-green' },
+      { label:'FIV / FeLV', value:'Negative', badge:'hb-green' },
+      { label:'Dental', value:'Cleaned Nov 2025', badge:'hb-blue' },
+      { label:'Known Conditions', value:'None', badge:'hb-green' },
+      { label:'Last Vet Visit', value:'February 2026', badge:'hb-blue' },
+    ],
+    facts: [
+      { label:'Shelter ID', value:'#HP-2059' },
+      { label:'Weight', value:'8 lbs' },
+      { label:'Coat', value:'Short, seal point' },
+      { label:'Energy', value:'Medium–High' },
+    ],
+    shelter: { name:'Citywide Cat Rescue', address:'456 Oak Ave, Columbus, OH 43202', phone:'(614) 555-0211', email:'adopt@citywidecat.org', hours:'Tue–Sun 10am–5pm' },
+  },
+};
+
+// ── Render profile from pet data ─────────────────────────────────────────────
+function renderProfile(pet) {
+  document.title = `${pet.name} — PetConnect+`;
+
+  // Hero image & name
+  document.getElementById('profileImg').src = pet.img;
+  document.getElementById('profileImg').alt = pet.name;
+  document.getElementById('profileName').textContent = pet.name;
+  document.getElementById('profileBreed').textContent = `${pet.breed} · ${pet.age} · ${pet.gender}`;
+  document.getElementById('bioName').textContent = pet.name;
+  document.getElementById('bioParagraph').textContent = pet.bio;
+  document.getElementById('typeBadge').textContent = pet.type;
+
+  // Status badge
+  if (pet.status === 'adopted') {
+    const b = document.getElementById('statusBadge');
+    b.className = 'badge-adopted'; b.textContent = 'Adopted 🎉';
+    const ab = document.getElementById('adoptBtn');
+    ab.textContent = '🏡 Already Adopted'; ab.disabled = true; ab.classList.add('adopted');
+  }
+
+  // Quick facts
+  const qf = document.getElementById('quickFacts');
+  pet.facts.forEach(f => {
+    qf.innerHTML += `<div class="fact"><div class="fact-label">${f.label}</div><div class="fact-value">${f.value}</div></div>`;
+  });
+
+  // Tags
+  const pt = document.getElementById('profileTags');
+  pet.tags.forEach(t => pt.innerHTML += `<span class="tag">${t}</span>`);
+
+  // Traits
+  const tl = document.getElementById('traitsList');
+  pet.traits.forEach(t => tl.innerHTML += `<span class="trait">${t}</span>`);
+
+  // Good With
+  const gw = document.getElementById('goodWithGrid');
+  pet.goodWith.forEach(g => {
+    gw.innerHTML += `<div style="display:flex;align-items:center;gap:10px;background:${g.ok ? 'var(--green-light)' : '#fef2f2'};border:1.5px solid ${g.ok ? 'rgba(5,150,105,.2)' : 'rgba(239,68,68,.15)'};border-radius:12px;padding:10px 14px;">
+      <span style="font-size:1.3rem;">${g.icon}</span>
+      <div>
+        <div style="font-size:.82rem;font-weight:700;color:${g.ok ? 'var(--green)' : '#dc2626'};">${g.ok ? '✓ Yes' : '✗ No'}</div>
+        <div style="font-size:.8rem;color:var(--text-soft);">${g.label}</div>
+      </div>
+    </div>`;
+  });
+
+  // Health table
+  const ht = document.getElementById('healthTable');
+  pet.health.forEach(h => {
+    ht.innerHTML += `<tr>
+      <td>${h.label}</td>
+      <td><span class="health-badge ${h.badge}">${h.value}</span></td>
+    </tr>`;
+  });
+
+  // Shelter info
+  document.getElementById('shelterName').textContent = pet.shelter.name;
+  document.getElementById('shelterAddress').textContent = pet.shelter.address;
+  document.getElementById('shelterPhone').textContent = pet.shelter.phone;
+  document.getElementById('shelterHours').textContent = pet.shelter.hours;
+  document.getElementById('shelterEmail').textContent = pet.shelter.email;
+  document.getElementById('shelterCallLink').href = `tel:${pet.shelter.phone.replace(/\D/g,'')}`;
+  document.getElementById('modalShelterName').textContent = pet.shelter.name;
+  document.getElementById('modalPetName').textContent = pet.name;
+
+  // More pets from same shelter (exclude current)
+  const mp = document.getElementById('morePets');
+  Object.values(PETS)
+    .filter(p => p.shelter.name === pet.shelter.name && p.id !== pet.id)
+    .slice(0, 3)
+    .forEach(p => {
+      mp.innerHTML += `<a href="pet-profile.html?pet=${p.id}" class="mini-pet">
+        <img src="${p.img}" alt="${p.name}"/>
+        <div class="mini-pet-info">
+          <div class="mini-pet-name">${p.name}</div>
+          <div class="mini-pet-meta">${p.breed} · ${p.age}</div>
+        </div>
+      </a>`;
+    });
+  if (!mp.innerHTML) mp.innerHTML = '<p style="font-size:.85rem;color:var(--text-soft);">No other pets from this shelter right now.</p>';
+}
+
+// ── Adopt button ──────────────────────────────────────────────────────────────
+function handleAdopt() {
+  const params = new URLSearchParams(window.location.search);
+  const petId  = params.get('pet') || 'luna';
+  const pet    = PETS[petId];
+  launchConfetti();
+  const btn = document.getElementById('adoptBtn');
+  btn.textContent = '🏡 Adopted!'; btn.disabled = true; btn.classList.add('adopted');
+  const badge = document.getElementById('statusBadge');
+  badge.className = 'badge-adopted'; badge.textContent = 'Adopted 🎉';
+  showToast(`Congratulations! You're adopting ${pet.name}! 🐾`, 'adopt', 5000);
+  setTimeout(() => showToast('Contact the shelter to complete your adoption paperwork.', 'info', 6000), 1200);
+}
+
+// ── Contact modal ─────────────────────────────────────────────────────────────
+function openContactModal() { document.getElementById('contactModal').classList.add('open'); }
+function closeContactModal() { document.getElementById('contactModal').classList.remove('open'); }
+document.getElementById('contactModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeContactModal(); });
+
+function submitContact(e) {
+  e.preventDefault();
+  const name = document.getElementById('c-name').value.trim();
+  closeContactModal();
+  showToast(`Message sent! ${name}, the shelter will be in touch soon.`, 'success', 5000);
+}
+
+// ── Confetti ──────────────────────────────────────────────────────────────────
+const canvas = document.getElementById('confetti-canvas');
+const ctx    = canvas.getContext('2d');
+let particles = [], frame;
+function launchConfetti() {
+  canvas.style.display = 'block';
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  particles = [];
+  const colors = ['#38bdf8','#0ea5e9','#7dd3fc','#bae6fd','#fbbf24','#34d399','#a78bfa','#f472b6','#fff'];
+  for (let i = 0; i < 180; i++) {
+    particles.push({ x:Math.random()*canvas.width, y:Math.random()*-canvas.height, w:Math.random()*10+5, h:Math.random()*5+3, color:colors[Math.floor(Math.random()*colors.length)], angle:Math.random()*Math.PI*2, spin:(Math.random()-.5)*.2, vx:(Math.random()-.5)*3, vy:Math.random()*4+2, alpha:1 });
+  }
+  animateConfetti();
+  setTimeout(() => { cancelAnimationFrame(frame); canvas.style.display='none'; }, 3500);
+}
+function animateConfetti() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  particles.forEach(p => {
+    p.y+=p.vy; p.x+=p.vx; p.angle+=p.spin;
+    if(p.y>canvas.height*.7) p.alpha-=.025;
+    ctx.save(); ctx.globalAlpha=Math.max(0,p.alpha); ctx.translate(p.x,p.y); ctx.rotate(p.angle);
+    ctx.fillStyle=p.color; ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h); ctx.restore();
+  });
+  frame=requestAnimationFrame(animateConfetti);
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function showToast(msg, type='info', duration=4000) {
+  const c=document.getElementById('toastContainer');
+  const t=document.createElement('div');
+  t.className=`toast ${type}`;
+  t.innerHTML=`<span>${msg}</span>`;
+  c.appendChild(t);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('show')));
+  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),500);},duration);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  const petId  = (params.get('pet') || 'luna').toLowerCase();
+  const pet    = PETS[petId];
+  if (!pet) {
+    document.body.innerHTML = `<div style="text-align:center;padding:80px 20px;font-family:sans-serif;">
+      <p style="font-size:3rem;">🐾</p>
+      <h2 style="color:#0c4a6e;margin:16px 0 8px;">Pet not found</h2>
+      <p style="color:#4a7fa0;margin-bottom:24px;">We couldn't find that pet profile.</p>
+      <a href="index.html" style="background:#0ea5e9;color:#fff;padding:12px 28px;border-radius:99px;text-decoration:none;font-weight:700;">← Back to Browse</a>
+    </div>`;
+    return;
+  }
+  renderProfile(pet);
+});
+</script>
+</body>
+</html>
