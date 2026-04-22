@@ -145,6 +145,9 @@
     .btn-send:hover { background:var(--sky-600); transform:translateY(-1px); }
     .btn-forward { width:100%; background:transparent; color:var(--sky-700); border:2px solid var(--sky-400); cursor:pointer; padding:12px; border-radius:99px; font-size:.95rem; font-weight:700; margin-top:10px; transition:background .2s,color .2s; }
     .btn-forward:hover { background:var(--sky-100); }
+    .btn-reset { width:100%; background:#fff; color:var(--sky-700); border:2px solid var(--sky-200); cursor:pointer; padding:12px; border-radius:99px; font-size:.95rem; font-weight:700; margin-top:10px; transition:background .2s,border-color .2s,color .2s; display:none; }
+    .btn-reset:hover { background:var(--sky-50); border-color:var(--sky-400); }
+    .btn-reset.show { display:block; }
 
     /* ── TOAST ── */
     .toast-container { position:fixed; bottom:28px; right:28px; z-index:9999; display:flex; flex-direction:column; gap:10px; pointer-events:none; }
@@ -484,7 +487,8 @@
           <div class="send-card">
             <h5>📧 Send to Owner</h5>
             <p style="font-size:.8rem;color:var(--text-soft);margin-bottom:10px;">Owner receives the full care form with a link to forward to their sitter.</p>
-            <button class="btn-send" onclick="sendToOwner()">Send Care Form to Owner</button>
+            <button class="btn-send" id="sendToOwnerBtn" onclick="sendToOwner()">Send Care Form to Owner</button>
+            <button class="btn-reset" id="resetReminderBtn" onclick="resetReminderForm()">Refresh Form for Another Reminder</button>
           </div>
           <div class="send-card">
             <h5>🔗 Generate Sitter Link</h5>
@@ -667,6 +671,29 @@
     showToast(`🔗 Sitter link generated for ${petName}! Click the field to copy.`, 'success');
   }
 
+  function resetReminderForm() {
+    const fieldIds = ['r-petName','r-petBreed','r-ownerName','r-ownerEmail','r-agencyName','r-agencyEmail','r-feeding','r-meds','r-vet','r-notes'];
+    fieldIds.forEach(id => {
+      const field = document.getElementById(id);
+      if (field) field.value = '';
+    });
+
+    document.querySelectorAll('#agencyChecklist .check-item').forEach((item, index) => {
+      const input = item.querySelector('input');
+      input.checked = index < 4;
+    });
+
+    document.getElementById('sitterLinkBox').style.display = 'none';
+    document.getElementById('sitterLinkInput').value = '';
+
+    const sendBtn = document.getElementById('sendToOwnerBtn');
+    sendBtn.textContent = 'Send Care Form to Owner';
+    sendBtn.disabled = false;
+
+    document.getElementById('resetReminderBtn').classList.remove('show');
+    showToast('Reminder form refreshed and ready for a new submission.', 'info');
+  }
+
   function sendToOwner() {
     const petName    = document.getElementById('r-petName').value.trim();
     const ownerEmail = document.getElementById('r-ownerEmail').value.trim();
@@ -675,13 +702,14 @@
       showToast('Please fill in Pet Name, Owner Name and Owner Email first.', 'info');
       return;
     }
-    const btn = document.querySelector('.btn-send');
+    const btn = document.getElementById('sendToOwnerBtn');
     btn.textContent = '⏳ Sending...'; btn.disabled = true;
     setTimeout(() => { showToast(`📧 Care form for ${petName} sent to ${ownerEmail}`, 'success', 5000); }, 600);
     setTimeout(() => {
       showToast(`${ownerName} will receive the sitter link to forward on.`, 'info', 5000);
       btn.textContent = '✅ Sent to Owner!'; btn.disabled = false;
       generateSitterLink();
+      document.getElementById('resetReminderBtn').classList.add('show');
     }, 1400);
   }
 
