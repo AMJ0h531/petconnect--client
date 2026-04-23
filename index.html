@@ -219,6 +219,22 @@
     .modal-btn-secondary { background:transparent; color:var(--sky-700); border:2px solid var(--sky-200); padding:11px 28px; border-radius:99px; font-size:.95rem; font-weight:700; cursor:pointer; transition:background .2s; }
     .modal-btn-secondary:hover { background:var(--sky-50); }
 
+    /* ── APPLY FORM MODAL ── */
+    .apply-modal { max-width:520px; text-align:left; }
+    .apply-modal h2, .apply-modal > p { text-align:center; }
+    .a-form-group { display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
+    .a-form-group label { font-size:.82rem; font-weight:700; color:var(--sky-700); text-transform:uppercase; letter-spacing:.8px; }
+    .a-form-group input, .a-form-group textarea {
+      background:#fff; border:1.5px solid var(--sky-200); border-radius:10px;
+      padding:10px 14px; font-family:'DM Sans',sans-serif; font-size:.92rem; color:var(--text);
+      transition:border-color .2s,box-shadow .2s; outline:none; width:100%;
+    }
+    .a-form-group input:focus, .a-form-group textarea:focus { border-color:var(--sky-500); box-shadow:0 0 0 3px rgba(14,165,233,.12); }
+    .a-form-group textarea { resize:vertical; min-height:80px; }
+    .a-form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .a-required { color:#dc2626; }
+    @media(max-width:560px) { .a-form-row { grid-template-columns:1fr; } }
+
     /* ── SITTER FORM PAGE (hidden by default) ── */
     .sitter-page { display:none; min-height:100vh; background:var(--sky-50); padding:60px 24px; }
     .sitter-page.active { display:block; }
@@ -298,6 +314,41 @@
 <!-- TOAST CONTAINER -->
 <div class="toast-container" id="toastContainer"></div>
 
+<!-- APPLY FORM MODAL -->
+<div class="overlay" id="applyModal">
+  <div class="modal apply-modal">
+    <span class="modal-paw">🐾</span>
+    <h2>Apply to Adopt <span id="applyModalPetName"></span></h2>
+    <p>Complete the short form below and we'll send your application to the admin for review.</p>
+    <form onsubmit="submitApplication(event)" style="margin-top:16px;">
+      <div class="a-form-row">
+        <div class="a-form-group">
+          <label>Full Name <span class="a-required">*</span></label>
+          <input type="text" id="app-name" placeholder="Your full name" required/>
+        </div>
+        <div class="a-form-group">
+          <label>Email <span class="a-required">*</span></label>
+          <input type="email" id="app-email" placeholder="you@email.com" required/>
+        </div>
+      </div>
+      <div class="a-form-group">
+        <label>Phone (optional)</label>
+        <input type="tel" id="app-phone" placeholder="(555) 000-0000"/>
+      </div>
+      <div class="a-form-group">
+        <label>Why do you want to adopt <span id="applyModalPetName2"></span>? <span class="a-required">*</span></label>
+        <textarea id="app-reason" placeholder="Tell us a bit about yourself and why you'd be a great match..." required></textarea>
+      </div>
+      <input type="hidden" id="app-petId"/>
+      <input type="hidden" id="app-petNameHidden"/>
+      <div class="modal-actions" style="margin-top:4px;">
+        <button type="submit" class="modal-btn-primary">Submit Application</button>
+        <button type="button" class="modal-btn-secondary" onclick="closeApplyModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- ADOPTION MODAL -->
 <div class="overlay" id="adoptModal">
   <div class="modal">
@@ -321,7 +372,7 @@
       <li><a href="dogs.html">Dogs</a></li>
       <li><a href="cats.html">Cats</a></li>
       <li><a href="match-quiz.html">Match Quiz</a></li>
-      <li><a href="#reminders">Care Reminders</a></li>
+      <li><a href="admin-dashboard.html">Care Reminders</a></li>
       <li><a href="index.html" class="active">Browse All</a></li>
       <li><a href="admin-dashboard.html">Admin</a></li>
     </ul>
@@ -583,8 +634,8 @@
     </div>
   </section>
 
-  <!-- ── CARE REMINDERS SECTION ── -->
-  <section class="reminder-section" id="reminders">
+  <!-- ── CARE REMINDERS SECTION (hidden — admin issues reminders post-approval) ── -->
+  <section class="reminder-section" id="reminders" style="display:none;">
     <div class="reminder-header">
       <h2>📋 Pet Care Reminder System</h2>
     </div>
@@ -842,26 +893,55 @@
 
   // ── ADOPT FLOW ──
   function triggerAdopt(id, name) {
-    // Show pending state on the card immediately
+    // Open the application form so the user fills in their details
+    document.getElementById('applyModalPetName').textContent = name;
+    document.getElementById('applyModalPetName2').textContent = name;
+    document.getElementById('app-petId').value = id;
+    document.getElementById('app-petNameHidden').value = name;
+    document.getElementById('app-name').value = '';
+    document.getElementById('app-email').value = '';
+    document.getElementById('app-phone').value = '';
+    document.getElementById('app-reason').value = '';
+    document.getElementById('applyModal').classList.add('open');
+  }
+
+  function closeApplyModal() {
+    document.getElementById('applyModal').classList.remove('open');
+  }
+
+  function submitApplication(event) {
+    event.preventDefault();
+    const id        = document.getElementById('app-petId').value;
+    const name      = document.getElementById('app-petNameHidden').value;
+    const appName   = document.getElementById('app-name').value.trim();
+    const appEmail  = document.getElementById('app-email').value.trim();
+    const appPhone  = document.getElementById('app-phone').value.trim();
+    const appReason = document.getElementById('app-reason').value.trim();
+
+    // Mark card as pending
     const btn = document.getElementById('adopt-' + id);
-    btn.textContent = '⏳ Pending';
-    btn.classList.add('pending');
-    btn.disabled = true;
+    btn.textContent = '⏳ Pending'; btn.classList.add('pending'); btn.disabled = true;
     const badge = document.getElementById('badge-' + id);
-    badge.className = 'badge-pending';
-    badge.textContent = 'Pending Review';
-    // Persist application + pet status to localStorage
+    badge.className = 'badge-pending'; badge.textContent = 'Pending Review';
+
+    // Save full application to localStorage
     const apps = JSON.parse(localStorage.getItem('petconnect.applications') || '[]');
-    apps.push({ id: Date.now().toString(), petId: id, petName: name, status: 'pending', createdAt: new Date().toISOString() });
+    apps.push({
+      id: Date.now().toString(), petId: id, petName: name,
+      applicantName: appName, applicantEmail: appEmail, applicantPhone: appPhone, reason: appReason,
+      status: 'pending', createdAt: new Date().toISOString()
+    });
     localStorage.setItem('petconnect.applications', JSON.stringify(apps));
     const statuses = JSON.parse(localStorage.getItem('petconnect.pet.statuses') || '{}');
     statuses[id] = 'pending';
     localStorage.setItem('petconnect.pet.statuses', JSON.stringify(statuses));
-    // Show pending modal
+
+    // Close form, open confirmation modal
+    closeApplyModal();
     setTimeout(() => {
       document.getElementById('modalPetName').textContent = name;
       document.getElementById('adoptModal').classList.add('open');
-    }, 400);
+    }, 200);
     showToast(`Application submitted for ${name}! Awaiting admin approval.`, 'info', 5000);
   }
 

@@ -88,6 +88,21 @@
     .toast.success { background:#065f46; }
     .toast.deny    { background:#7f1d1d; }
 
+    /* ── ADMIN LOGIN OVERLAY ── */
+    .login-overlay { position:fixed; inset:0; background:rgba(12,45,69,.70); z-index:9000; display:flex; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(6px); }
+    .login-box { background:#fff; border-radius:24px; padding:44px 40px; max-width:400px; width:100%; box-shadow:0 24px 60px rgba(12,45,69,.3); text-align:center; }
+    .login-box .login-icon { font-size:3rem; margin-bottom:12px; display:block; }
+    .login-box h2 { font-family:'Playfair Display',serif; font-size:1.7rem; font-weight:900; color:var(--sky-900); margin-bottom:6px; }
+    .login-box p { color:var(--text-soft); font-size:.9rem; margin-bottom:28px; }
+    .login-field { display:flex; flex-direction:column; gap:6px; margin-bottom:14px; text-align:left; }
+    .login-field label { font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--sky-700); }
+    .login-field input { border:1.5px solid var(--sky-200); border-radius:10px; padding:10px 14px; font-family:'DM Sans',sans-serif; font-size:.95rem; color:var(--text); outline:none; transition:border-color .2s,box-shadow .2s; }
+    .login-field input:focus { border-color:var(--sky-500); box-shadow:0 0 0 3px rgba(14,165,233,.12); }
+    .login-error { color:#dc2626; font-size:.84rem; margin-bottom:10px; display:none; }
+    .login-error.show { display:block; }
+    .btn-login { width:100%; background:var(--sky-500); color:#fff; border:none; padding:13px; border-radius:99px; font-size:.95rem; font-weight:700; cursor:pointer; transition:background .2s; margin-top:6px; }
+    .btn-login:hover { background:var(--sky-600); }
+
     @media(max-width:900px) {
       nav { padding:0 20px; }
       .page-wrap { padding:28px 20px 60px; }
@@ -96,6 +111,27 @@
   </style>
 </head>
 <body>
+
+<!-- ADMIN LOGIN OVERLAY -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <span class="login-icon">🔐</span>
+    <h2>Admin Sign In</h2>
+    <p>This area is restricted to PetConnect+ administrators.</p>
+    <form onsubmit="handleLogin(event)">
+      <div class="login-field">
+        <label>Username</label>
+        <input type="text" id="loginUsername" placeholder="admin" autocomplete="username"/>
+      </div>
+      <div class="login-field">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+      <div class="login-error" id="loginError">Incorrect username or password.</div>
+      <button type="submit" class="btn-login">Sign In</button>
+    </form>
+  </div>
+</div>
 
 <div class="toast-container" id="toastContainer"></div>
 
@@ -116,7 +152,7 @@
       <h1>Admin Dashboard</h1>
       <p>Review adoption applications and approve or deny each request.</p>
     </div>
-    <button class="refresh-btn" onclick="renderDashboard()">↻ Refresh</button>
+    <button class="refresh-btn" onclick="window.location.reload()">↻ Refresh</button>
   </div>
 
   <div class="summary-grid" id="summaryGrid"></div>
@@ -223,11 +259,17 @@
     }
 
     const rows = filtered.map(app => {
-      const applied   = new Date(app.createdAt).toLocaleString();
-      const reviewed  = app.reviewedAt ? new Date(app.reviewedAt).toLocaleString() : '—';
-      const label     = app.status.charAt(0).toUpperCase() + app.status.slice(1);
+      const applied    = new Date(app.createdAt).toLocaleString();
+      const reviewed   = app.reviewedAt ? new Date(app.reviewedAt).toLocaleString() : '—';
+      const label      = app.status.charAt(0).toUpperCase() + app.status.slice(1);
+      const applicant  = app.applicantName  ? esc(app.applicantName)  : '<em style="color:var(--text-soft)">—</em>';
+      const contact    = app.applicantEmail ? `<div style="font-size:.8rem;color:var(--text-soft);">${esc(app.applicantEmail)}</div>` : '';
+      const phone      = app.applicantPhone ? `<div style="font-size:.78rem;color:var(--text-soft);">${esc(app.applicantPhone)}</div>` : '';
+      const reason     = app.reason ? esc(app.reason) : '<em style="color:var(--text-soft)">—</em>';
       return `<tr>
         <td><span class="pet-name">${esc(app.petName)}</span></td>
+        <td>${applicant}${contact}${phone}</td>
+        <td style="max-width:200px;font-size:.84rem;color:var(--text-soft);">${reason}</td>
         <td class="date-cell">${applied}</td>
         <td><span class="status-badge ${app.status}">${label}</span></td>
         <td class="date-cell">${reviewed}</td>
@@ -243,7 +285,7 @@
 
     el.innerHTML = `<table>
       <thead><tr>
-        <th>Pet</th><th>Applied</th><th>Status</th><th>Reviewed</th><th>Actions</th>
+        <th>Pet</th><th>Applicant</th><th>Reason</th><th>Applied</th><th>Status</th><th>Reviewed</th><th>Actions</th>
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
@@ -268,6 +310,33 @@
     setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 500); }, 5000);
   }
 
+  // ── ADMIN AUTH ──
+  const ADMIN_SESSION_KEY = 'petconnect.admin.session';
+
+  function checkAuth() {
+    const session = sessionStorage.getItem(ADMIN_SESSION_KEY);
+    if (session === 'authenticated') {
+      document.getElementById('loginOverlay').style.display = 'none';
+    }
+    // overlay stays visible if not authenticated
+  }
+
+  function handleLogin(event) {
+    event.preventDefault();
+    const user = document.getElementById('loginUsername').value.trim();
+    const pass = document.getElementById('loginPassword').value;
+    const errEl = document.getElementById('loginError');
+    if (user === 'admin' && pass === 'petconnect2026') {
+      sessionStorage.setItem(ADMIN_SESSION_KEY, 'authenticated');
+      document.getElementById('loginOverlay').style.display = 'none';
+      errEl.classList.remove('show');
+      renderDashboard();
+    } else {
+      errEl.classList.add('show');
+    }
+  }
+
+  checkAuth();
   renderDashboard();
 </script>
 </body>
