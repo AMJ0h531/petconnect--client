@@ -50,25 +50,25 @@
     .theme-toggle:hover { background:var(--surface-soft); border-color:var(--sky-400); transform:translateY(-1px); }
 
     /* ── BACK BAR ── */
-    .back-bar { padding:20px 48px 0; }
+    .back-bar { padding:16px 48px 0; }
     .btn-back { display:inline-flex; align-items:center; gap:8px; font-size:.88rem; font-weight:600; color:var(--sky-600); text-decoration:none; padding:8px 18px; border:1.5px solid var(--border-color); border-radius:99px; background:var(--surface); transition:background .2s,border-color .2s; cursor:pointer; }
     .btn-back:hover { background:var(--sky-100); border-color:var(--sky-400); }
 
     /* ── PROFILE HERO ── */
     .profile-hero {
-      display:grid; grid-template-columns:1fr 1fr; gap:0;
-      min-height:480px; margin:24px 48px 0; border-radius:24px; overflow:hidden;
+      display:grid; grid-template-columns:minmax(360px,1.05fr) minmax(420px,.95fr); gap:0;
+      max-width:1180px; min-height:420px; margin:18px auto 0; border-radius:24px; overflow:hidden;
       box-shadow:var(--shadow-hover); border:1.5px solid var(--border-color);
     }
-    .profile-photo { position:relative; overflow:hidden; min-height:400px; }
+    .profile-photo { position:relative; overflow:hidden; min-height:360px; }
     .profile-photo img { width:100%; height:100%; object-fit:cover; display:block; }
     .profile-photo-overlay { position:absolute; inset:0; background:linear-gradient(to right, transparent 60%, rgba(255,255,255,.15)); }
 
     .profile-info {
-      background:var(--surface); padding:44px 44px 36px;
+      background:var(--surface); padding:34px 34px 30px;
       display:flex; flex-direction:column; justify-content:space-between;
     }
-    .profile-info-top { display:flex; flex-direction:column; gap:16px; }
+    .profile-info-top { display:flex; flex-direction:column; gap:12px; }
 
     .profile-badges { display:flex; gap:8px; flex-wrap:wrap; }
     .badge-available { display:inline-flex; align-items:center; gap:5px; background:var(--green-light); color:var(--green); font-size:.72rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:5px 13px; border-radius:99px; border:1.5px solid rgba(5,150,105,.2); }
@@ -77,18 +77,18 @@
     .badge-adopted { display:inline-flex; align-items:center; gap:5px; background:#ede9fe; color:#7c3aed; font-size:.72rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:5px 13px; border-radius:99px; border:1.5px solid rgba(124,58,237,.2); }
     .badge-type { background:var(--sky-100); color:var(--sky-700); font-size:.72rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:5px 13px; border-radius:99px; border:1.5px solid var(--border-color); }
 
-    .profile-name { font-family:'Playfair Display',serif; font-size:2.8rem; font-weight:900; color:var(--text-strong); line-height:1.05; }
+    .profile-name { font-family:'Playfair Display',serif; font-size:2.45rem; font-weight:900; color:var(--text-strong); line-height:1.02; }
     .profile-breed { font-size:1rem; color:var(--text-soft); font-weight:500; }
 
-    .profile-quick-facts { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:4px; }
-    .fact { background:var(--surface-soft); border:1.5px solid var(--border-color); border-radius:12px; padding:12px 16px; }
+    .profile-quick-facts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:2px; }
+    .fact { background:var(--surface-soft); border:1.5px solid var(--border-color); border-radius:12px; padding:11px 14px; min-height:72px; display:flex; flex-direction:column; justify-content:center; }
     .fact-label { font-size:.72rem; font-weight:700; color:var(--sky-600); text-transform:uppercase; letter-spacing:.8px; margin-bottom:3px; }
     .fact-value { font-size:.95rem; font-weight:600; color:var(--text); }
 
     .profile-tags { display:flex; flex-wrap:wrap; gap:7px; }
     .tag { background:var(--sky-50); color:var(--sky-700); font-size:.78rem; font-weight:600; padding:4px 13px; border-radius:99px; border:1px solid var(--sky-200); }
 
-    .profile-actions { display:flex; gap:12px; margin-top:24px; flex-wrap:wrap; }
+    .profile-actions { display:flex; gap:12px; margin-top:18px; flex-wrap:wrap; }
     .btn-adopt-main { flex:1; background:var(--sky-500); color:#fff; border:none; cursor:pointer; padding:14px 0; border-radius:99px; font-size:1rem; font-weight:800; transition:background .2s,transform .15s,box-shadow .2s; text-align:center; text-decoration:none; box-shadow:0 4px 18px rgba(14,165,233,.35); }
     .btn-adopt-main:hover { background:var(--sky-600); transform:translateY(-2px); }
     .btn-adopt-main:disabled, .btn-adopt-main.adopted { background:#c4b5fd; cursor:default; box-shadow:none; transform:none; }
@@ -96,15 +96,15 @@
     .btn-contact:hover { border-color:var(--sky-400); background:var(--sky-50); }
 
     /* ── BODY CONTENT ── */
-    .profile-body { max-width:1100px; margin:40px auto; padding:0 48px 80px; display:grid; grid-template-columns:2fr 1fr; gap:28px; align-items:start; }
+    .profile-body { max-width:1180px; margin:24px auto 0; padding:0 48px 64px; display:grid; grid-template-columns:minmax(0,1.7fr) minmax(280px,.95fr); gap:22px; align-items:start; }
+    .profile-main { display:flex; flex-direction:column; gap:16px; }
 
     /* Cards */
-    .info-card { background:var(--surface); border:1.5px solid var(--border-color); border-radius:20px; padding:28px 30px; box-shadow:var(--shadow); }
-    .info-card + .info-card { margin-top:20px; }
-    .card-title { font-family:'Playfair Display',serif; font-size:1.15rem; font-weight:700; color:var(--text-strong); margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+    .info-card { background:var(--surface); border:1.5px solid var(--border-color); border-radius:20px; padding:22px 24px; box-shadow:var(--shadow); }
+    .card-title { font-family:'Playfair Display',serif; font-size:1.15rem; font-weight:700; color:var(--text-strong); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
 
     /* Bio */
-    .bio-text { font-size:.95rem; color:var(--text-soft); line-height:1.75; }
+    .bio-text { font-size:.95rem; color:var(--text-soft); line-height:1.68; }
 
     /* Personality traits */
     .traits { display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
@@ -113,19 +113,30 @@
     /* Health table */
     .health-table { width:100%; border-collapse:collapse; }
     .health-table tr:not(:last-child) td { border-bottom:1px solid var(--sky-100); }
-    .health-table td { padding:10px 6px; font-size:.88rem; vertical-align:top; }
-    .health-table td:first-child { font-weight:700; color:var(--sky-700); width:40%; white-space:nowrap; }
+    .health-table td { padding:9px 6px; font-size:.88rem; vertical-align:top; }
+    .health-table td:first-child { font-weight:700; color:var(--sky-700); width:36%; white-space:nowrap; }
     .health-table td:last-child { color:var(--text); }
     .health-badge { display:inline-block; font-size:.72rem; font-weight:700; padding:2px 10px; border-radius:99px; }
     .hb-green { background:var(--green-light); color:var(--green); }
     .hb-yellow { background:#fef9c3; color:#854d0e; }
     .hb-blue { background:var(--sky-100); color:var(--sky-700); }
 
+    .good-with-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+    .compatibility-item { display:flex; align-items:center; gap:12px; border-radius:14px; padding:12px 14px; border:1.5px solid transparent; }
+    .compatibility-item.ok { background:var(--green-light); border-color:rgba(5,150,105,.2); }
+    .compatibility-item.not-ok { background:#fef2f2; border-color:rgba(239,68,68,.15); }
+    .compatibility-icon { width:40px; height:40px; border-radius:12px; display:grid; place-items:center; font-size:1.2rem; background:rgba(255,255,255,.7); flex-shrink:0; }
+    .compatibility-copy { min-width:0; }
+    .compatibility-status { font-size:.8rem; font-weight:700; }
+    .compatibility-item.ok .compatibility-status { color:var(--green); }
+    .compatibility-item.not-ok .compatibility-status { color:#dc2626; }
+    .compatibility-label { font-size:.82rem; color:var(--text-soft); margin-top:2px; line-height:1.35; }
+
     /* Sidebar */
-    .sidebar { display:flex; flex-direction:column; gap:20px; }
+    .sidebar { display:flex; flex-direction:column; gap:16px; }
 
     /* Shelter card */
-    .shelter-card { background:linear-gradient(135deg,var(--sky-700),var(--sky-900)); border-radius:20px; padding:28px; color:#fff; box-shadow:var(--shadow-hover); }
+    .shelter-card { background:linear-gradient(135deg,var(--sky-700),var(--sky-900)); border-radius:20px; padding:24px; color:#fff; box-shadow:var(--shadow-hover); }
     .shelter-card h3 { font-family:'Playfair Display',serif; font-size:1.05rem; font-weight:700; margin-bottom:4px; }
     .shelter-name { font-size:1.1rem; font-weight:800; margin-bottom:16px; }
     .shelter-detail { font-size:.83rem; color:rgba(186,230,253,.85); display:flex; align-items:flex-start; gap:9px; margin-bottom:10px; line-height:1.5; }
@@ -180,9 +191,11 @@
       .back-bar { padding:16px 20px 0; }
       .profile-hero { grid-template-columns:1fr; margin:16px 20px 0; }
       .profile-photo { min-height:280px; }
-      .profile-info { padding:28px 24px; }
+      .profile-info { padding:26px 22px; }
       .profile-body { grid-template-columns:1fr; padding:24px 20px 60px; }
       .profile-name { font-size:2rem; }
+      .profile-quick-facts, .good-with-grid { grid-template-columns:1fr; }
+      .info-card { padding:20px; }
     }
   </style>
 </head>
@@ -268,7 +281,7 @@
 <div class="profile-body">
 
   <!-- LEFT COLUMN -->
-  <div>
+  <div class="profile-main">
     <!-- Bio -->
     <div class="info-card">
       <div class="card-title">🐾 About <span id="bioName">Luna</span></div>
@@ -277,15 +290,15 @@
     </div>
 
     <!-- Health Records -->
-    <div class="info-card" style="margin-top:20px;">
+    <div class="info-card">
       <div class="card-title">🏥 Health & Vaccination Records</div>
       <table class="health-table" id="healthTable"></table>
     </div>
 
     <!-- Good With -->
-    <div class="info-card" style="margin-top:20px;">
+    <div class="info-card">
       <div class="card-title">🏡 Good With</div>
-      <div id="goodWithGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"></div>
+      <div id="goodWithGrid" class="good-with-grid"></div>
     </div>
   </div>
 
@@ -960,11 +973,11 @@ function renderProfile(pet) {
   // Good With
   const gw = document.getElementById('goodWithGrid');
   pet.goodWith.forEach(g => {
-    gw.innerHTML += `<div style="display:flex;align-items:center;gap:10px;background:${g.ok ? 'var(--green-light)' : '#fef2f2'};border:1.5px solid ${g.ok ? 'rgba(5,150,105,.2)' : 'rgba(239,68,68,.15)'};border-radius:12px;padding:10px 14px;">
-      <span style="font-size:1.3rem;">${g.icon}</span>
-      <div>
-        <div style="font-size:.82rem;font-weight:700;color:${g.ok ? 'var(--green)' : '#dc2626'};">${g.ok ? '✓ Yes' : '✗ No'}</div>
-        <div style="font-size:.8rem;color:var(--text-soft);">${g.label}</div>
+    gw.innerHTML += `<div class="compatibility-item ${g.ok ? 'ok' : 'not-ok'}">
+      <span class="compatibility-icon">${g.icon}</span>
+      <div class="compatibility-copy">
+        <div class="compatibility-status">${g.ok ? '✓ Yes' : '✗ No'}</div>
+        <div class="compatibility-label">${g.label}</div>
       </div>
     </div>`;
   });

@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Browse All Cats — PetConnect+</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --sky-50:#f0f9ff; --sky-100:#e0f2fe; --sky-200:#bae6fd;
+      --sky-400:#38bdf8; --sky-500:#0ea5e9; --sky-600:#0284c7;
+      --sky-700:#0369a1; --sky-900:#0c4a6e;
+      --white:#ffffff; --text:#0c2d45; --text-soft:#4a7fa0;
+      --border:#bae6fd; --card-bg:#ffffff;
+      --green:#059669; --green-light:#d1fae5;
+      --shadow:0 4px 24px rgba(14,165,233,.10);
+      --shadow-hover:0 14px 40px rgba(14,165,233,.22);
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family:'DM Sans',sans-serif; background:var(--sky-50); color:var(--text); min-height:100vh; }
+
+    /* ── NAV ── */
+    nav {
+      position:sticky; top:0; z-index:200;
+      background:rgba(240,249,255,.96); backdrop-filter:blur(10px);
+      border-bottom:1.5px solid var(--sky-200);
+      padding:0 48px; display:flex; align-items:center; justify-content:space-between; height:68px;
+    }
+    .nav-logo { font-family:'Playfair Display',serif; font-size:1.45rem; font-weight:900; color:var(--sky-700); letter-spacing:-.5px; text-decoration:none; display:flex; align-items:center; gap:6px; }
+    .nav-logo .plus { background:var(--sky-500); color:#fff; font-size:.82rem; font-family:'DM Sans',sans-serif; font-weight:800; padding:2px 8px; border-radius:7px; }
+    .nav-links { display:flex; gap:6px; list-style:none; }
+    .nav-links a { text-decoration:none; font-size:.9rem; font-weight:500; color:var(--text-soft); padding:7px 18px; border-radius:99px; transition:background .2s,color .2s; }
+    .nav-links a:hover { background:var(--sky-100); color:var(--sky-700); }
+    .nav-links a.active { background:var(--sky-500); color:#fff; }
+
+    /* ── BACK BAR ── */
+    .back-bar { background:var(--white); border-bottom:1.5px solid var(--sky-100); padding:12px clamp(20px,4vw,48px); }
+    .back-link { font-size:.88rem; font-weight:600; color:var(--sky-600); text-decoration:none; display:inline-flex; align-items:center; gap:6px; transition:color .2s,gap .2s; }
+    .back-link:hover { color:var(--sky-700); gap:10px; }
+
+    /* ── PAGE HEADER ── */
+    .page-header {
+      background:linear-gradient(155deg,#e0f2fe 0%,#bae6fd 50%,#7dd3fc 100%);
+      padding:60px clamp(20px,4vw,48px) 50px;
+      position:relative; overflow:hidden;
+    }
+    .page-header::after { content:'🐱'; position:absolute; font-size:10rem; opacity:.07; bottom:-15px; right:50px; transform:rotate(-15deg); pointer-events:none; }
+    .page-header-eyebrow { display:inline-block; font-size:.76rem; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; color:var(--sky-700); background:rgba(255,255,255,.55); padding:5px 20px; border-radius:99px; margin-bottom:18px; border:1px solid rgba(14,165,233,.25); backdrop-filter:blur(4px); }
+    .page-header h1 { font-family:'Playfair Display',serif; font-size:clamp(2rem,4vw,3rem); font-weight:900; color:var(--sky-900); margin-bottom:10px; }
+    .page-header p { font-size:1rem; color:var(--sky-700); max-width:500px; line-height:1.65; }
+
+    /* ── SECTION ── */
+    .section { padding:68px clamp(20px,4vw,48px); background:var(--sky-100); }
+    .section-header { display:flex; align-items:center; gap:16px; margin-bottom:36px; }
+    .section-header h2 { font-family:'Playfair Display',serif; font-size:2rem; font-weight:700; color:var(--sky-900); }
+    .section-header a { font-size:.88rem; font-weight:600; color:var(--sky-600); text-decoration:none; margin-left:auto; padding:7px 18px; border:1.5px solid var(--sky-400); border-radius:99px; transition:background .2s,color .2s,border-color .2s; }
+    .section-header a:hover { background:var(--sky-500); color:#fff; border-color:var(--sky-500); }
+
+    /* ── CARDS ── */
+    .cards-grid {
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:clamp(16px,2vw,24px);
+      align-items:stretch;
+    }
+    .pet-card {
+      background:var(--card-bg);
+      border-radius:22px;
+      overflow:hidden;
+      box-shadow:var(--shadow);
+      transition:transform .25s,box-shadow .25s;
+      display:flex;
+      flex-direction:column;
+      border:1.5px solid var(--sky-200);
+      min-height:100%;
+    }
+    .pet-card:hover { transform:translateY(-7px); box-shadow:var(--shadow-hover); }
+    .card-img-wrap {
+      width:100%;
+      height:280px;
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:var(--sky-100);
+    }
+    .card-img-wrap img { width:100%; height:100%; object-fit:contain; object-position:center; display:block; transition:transform .4s; }
+    .pet-card:hover .card-img-wrap img { transform:scale(1.06); }
+    .card-body { padding:20px 20px 22px; display:flex; flex-direction:column; gap:11px; flex:1; }
+    .card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
+    .card-name { font-family:'Playfair Display',serif; font-size:1.3rem; font-weight:700; color:var(--sky-900); }
+    .badge-available { display:inline-flex; align-items:center; gap:5px; background:var(--green-light); color:var(--green); font-size:.7rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:4px 11px; border-radius:99px; border:1.5px solid rgba(5,150,105,.2); white-space:nowrap; flex-shrink:0; }
+    .badge-available::before { content:''; width:6px; height:6px; background:var(--green); border-radius:50%; display:inline-block; animation:pulse 1.8s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.45;transform:scale(.75)} }
+    .badge-adopted { display:inline-flex; align-items:center; gap:5px; background:#ede9fe; color:#7c3aed; font-size:.7rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:4px 11px; border-radius:99px; border:1.5px solid rgba(124,58,237,.2); white-space:nowrap; flex-shrink:0; }
+    .card-meta { font-size:.85rem; color:var(--text-soft); line-height:1.5; }
+    .card-meta strong { color:var(--text); font-weight:600; }
+    .card-tags { display:flex; flex-wrap:wrap; gap:6px; }
+    .tag { background:var(--sky-50); color:var(--sky-700); font-size:.74rem; font-weight:600; padding:3px 11px; border-radius:99px; border:1px solid var(--sky-200); }
+    .card-footer { display:flex; gap:10px; margin-top:4px; }
+    .btn-adopt { flex:1; background:var(--sky-500); color:#fff; border:none; cursor:pointer; padding:11px 0; border-radius:99px; font-size:.9rem; font-weight:700; transition:background .2s,transform .15s,box-shadow .2s; text-align:center; text-decoration:none; box-shadow:0 3px 12px rgba(14,165,233,.28); }
+    .btn-adopt:hover { background:var(--sky-600); transform:translateY(-1px); }
+    .btn-adopt:disabled,.btn-adopt.adopted { background:#c4b5fd; cursor:default; box-shadow:none; transform:none; }
+    .btn-profile { background:transparent; color:var(--sky-700); border:1.5px solid var(--sky-200); cursor:pointer; padding:11px 18px; border-radius:99px; font-size:.9rem; font-weight:600; transition:border-color .2s,background .2s; text-decoration:none; white-space:nowrap; }
+    .btn-profile:hover { border-color:var(--sky-400); background:var(--sky-50); }
+
+    /* ── TOAST ── */
+    .toast-container { position:fixed; bottom:28px; right:28px; z-index:9999; display:flex; flex-direction:column; gap:10px; pointer-events:none; }
+    .toast { background:var(--sky-900); color:#fff; padding:14px 22px; border-radius:14px; font-size:.9rem; font-weight:500; box-shadow:0 8px 28px rgba(12,45,69,.35); display:flex; align-items:center; gap:10px; transform:translateX(120%); transition:transform .4s cubic-bezier(.34,1.56,.64,1); pointer-events:auto; max-width:340px; }
+    .toast.show { transform:translateX(0); }
+    .toast.success { background:#065f46; border-left:4px solid #10b981; }
+    .toast.info { background:var(--sky-700); border-left:4px solid var(--sky-400); }
+    .toast-icon { font-size:1.2rem; flex-shrink:0; }
+
+    /* ── ADOPTION MODAL ── */
+    .overlay { position:fixed; inset:0; background:rgba(12,45,69,.55); z-index:500; display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity .3s; backdrop-filter:blur(4px); }
+    .overlay.open { opacity:1; pointer-events:all; }
+    .modal { background:#fff; border-radius:24px; padding:40px 36px; max-width:460px; width:100%; text-align:center; transform:scale(.92) translateY(20px); transition:transform .35s cubic-bezier(.34,1.56,.64,1); box-shadow:0 24px 60px rgba(12,45,69,.25); }
+    .overlay.open .modal { transform:scale(1) translateY(0); }
+    .modal-paw { font-size:3.5rem; display:block; margin-bottom:12px; animation:bouncePaw .6s ease; }
+    @keyframes bouncePaw { 0%,100%{transform:scale(1)} 50%{transform:scale(1.25) rotate(-10deg)} }
+    .modal h2 { font-family:'Playfair Display',serif; font-size:1.7rem; font-weight:900; color:var(--sky-900); margin-bottom:10px; }
+    .modal p { color:var(--text-soft); font-size:.95rem; line-height:1.6; margin-bottom:24px; }
+    .modal-pet-name { color:var(--sky-600); font-weight:700; }
+    .modal-actions { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+    .modal-btn-primary { background:var(--sky-500); color:#fff; border:none; padding:12px 28px; border-radius:99px; font-size:.95rem; font-weight:700; cursor:pointer; transition:background .2s; }
+    .modal-btn-primary:hover { background:var(--sky-600); }
+    .modal-btn-secondary { background:transparent; color:var(--sky-700); border:2px solid var(--sky-200); padding:11px 28px; border-radius:99px; font-size:.95rem; font-weight:700; cursor:pointer; transition:background .2s; }
+    .modal-btn-secondary:hover { background:var(--sky-50); }
+
+    /* ── CONFETTI CANVAS ── */
+    #confetti-canvas { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9998; display:none; }
+
+    /* ── FOOTER ── */
+    footer { text-align:center; padding:30px 24px; font-size:.82rem; color:var(--text-soft); border-top:1.5px solid var(--sky-200); background:var(--white); }
+    footer strong { color:var(--sky-600); font-family:'Playfair Display',serif; }
+
+    @media (max-width:1200px) {
+      .cards-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+      .card-img-wrap { height:260px; }
+    }
+    @media (max-width:992px) {
+      .section { padding:56px 28px; }
+      .cards-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+      .card-img-wrap { height:250px; }
+    }
+    @media (max-width:768px) {
+      nav { padding:0 20px; }
+      .section { padding:48px 20px; }
+      .cards-grid { grid-template-columns:1fr; }
+      .pet-card { max-width:640px; margin:0 auto; width:100%; }
+    }
+    @media (max-width:560px) {
+      .card-img-wrap { height:230px; }
+      .card-top { flex-direction:column; align-items:flex-start; }
+      .card-footer { flex-direction:column; }
+      .btn-adopt, .btn-profile { width:100%; text-align:center; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ADOPTION MODAL -->
+<div class="overlay" id="adoptModal">
+  <div class="modal">
+    <span class="modal-paw">🐾</span>
+    <h2>You're adopting <span class="modal-pet-name" id="modalPetName">Mittens</span>!</h2>
+    <p>Congratulations on giving a pet a forever home. Would you like us to send a Pet Care Reminder form to your sitter now?</p>
+    <div class="modal-actions">
+      <button class="modal-btn-primary" onclick="window.location.href='index.html#reminders'">📋 Set Up Care Reminders</button>
+      <button class="modal-btn-secondary" onclick="closeModal()">Maybe Later</button>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">PetConnect<span class="plus">+</span></a>
+  <ul class="nav-links">
+    <li><a href="dogs.html">Dogs</a></li>
+    <li><a href="cats.html" class="active">Cats</a></li>
+    <li><a href="match-quiz.html">Match Quiz</a></li>
+    <li><a href="index.html#reminders">Care Reminders</a></li>
+    <li><a href="index.html">Browse All</a></li>
+  </ul>
+</nav>
+
+<!-- BACK LINK -->
+<div class="back-bar">
+  <a href="index.html" class="back-link">← Back to Browse</a>
+</div>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="page-header-eyebrow">🐱 Adoptable Cats</div>
+  <h1>Find Your Purr-fect Match</h1>
+  <p>Every cat deserves a warm lap and a loving home. Browse all of our available cats and find your forever companion.</p>
+</div>
+
+<!-- ALL CATS -->
+<section class="section">
+  <div class="section-header">
+    <h2>🐱 All Available Cats</h2>
+  </div>
+  <div class="cards-grid">
+
+    <div class="pet-card" id="card-mittens">
+      <div class="card-img-wrap"><img src="https://images.unsplash.com/photo-1529778873920-4da4926a72c2?w=500&q=80" alt="Mittens"/></div>
+      <div class="card-body">
+        <div class="card-top"><span class="card-name">Mittens</span><span class="badge-available" id="badge-mittens">Available</span></div>
+        <div class="card-meta"><strong>Tabby Mix</strong> · 4 yrs · Female</div>
+        <div class="card-tags"><span class="tag">Good with kids</span><span class="tag">Dog friendly</span><span class="tag">Cat friendly</span><span class="tag">Indoor</span></div>
+        <div class="card-footer">
+          <button class="btn-adopt" id="adopt-mittens" onclick="triggerAdopt('mittens','Mittens')">❤️ Adopt Me</button>
+          <a href="pet-profile.html?pet=mittens" class="btn-profile">Profile</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="pet-card" id="card-whiskers">
+      <div class="card-img-wrap"><img src="https://images.unsplash.com/photo-1592194996308-7b43878e84a6?w=500&q=80" alt="Whiskers"/></div>
+      <div class="card-body">
+        <div class="card-top"><span class="card-name">Whiskers</span><span class="badge-available" id="badge-whiskers">Available</span></div>
+        <div class="card-meta"><strong>Domestic Shorthair</strong> · 2 yrs · Male</div>
+        <div class="card-tags"><span class="tag">Calm</span><span class="tag">Indoor</span><span class="tag">Cuddly</span></div>
+        <div class="card-footer">
+          <button class="btn-adopt" id="adopt-whiskers" onclick="triggerAdopt('whiskers','Whiskers')">❤️ Adopt Me</button>
+          <a href="pet-profile.html?pet=whiskers" class="btn-profile">Profile</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="pet-card" id="card-cleo">
+      <div class="card-img-wrap"><img src="https://images.unsplash.com/photo-1494256997604-768d1f608cac?w=500&q=80" alt="Cleo"/></div>
+      <div class="card-body">
+        <div class="card-top"><span class="card-name">Cleo</span><span class="badge-available" id="badge-cleo">Available</span></div>
+        <div class="card-meta"><strong>Siamese Mix</strong> · 3 yrs · Female</div>
+        <div class="card-tags"><span class="tag">Vocal</span><span class="tag">Playful</span><span class="tag">Dog friendly</span></div>
+        <div class="card-footer">
+          <button class="btn-adopt" id="adopt-cleo" onclick="triggerAdopt('cleo','Cleo')">❤️ Adopt Me</button>
+          <a href="pet-profile.html?pet=cleo" class="btn-profile">Profile</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="pet-card" id="card-olive">
+      <div class="card-img-wrap"><img src="https://images.unsplash.com/photo-1519052537078-e6302a4968d4?w=500&q=80" alt="Olive"/></div>
+      <div class="card-body">
+        <div class="card-top"><span class="card-name">Olive</span><span class="badge-available" id="badge-olive">Available</span></div>
+        <div class="card-meta"><strong>Russian Blue Mix</strong> · 2 yrs · Female</div>
+        <div class="card-tags"><span class="tag">Quiet</span><span class="tag">Elegant</span><span class="tag">Indoor</span></div>
+        <div class="card-footer">
+          <button class="btn-adopt" id="adopt-olive" onclick="triggerAdopt('olive','Olive')">❤️ Adopt Me</button>
+          <a href="pet-profile.html?pet=olive" class="btn-profile">Profile</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="pet-card" id="card-mochi">
+      <div class="card-img-wrap"><img src="https://images.unsplash.com/photo-1511044568932-338cba0ad803?w=500&q=80" alt="Mochi"/></div>
+      <div class="card-body">
+        <div class="card-top"><span class="card-name">Mochi</span><span class="badge-available" id="badge-mochi">Available</span></div>
+        <div class="card-meta"><strong>Domestic Longhair</strong> · 1 yr · Male</div>
+        <div class="card-tags"><span class="tag">Fluffy</span><span class="tag">Playful</span><span class="tag">Curious</span></div>
+        <div class="card-footer">
+          <button class="btn-adopt" id="adopt-mochi" onclick="triggerAdopt('mochi','Mochi')">❤️ Adopt Me</button>
+          <a href="pet-profile.html?pet=mochi" class="btn-profile">Profile</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="pet-card" id="card-pepper">
+      <div class="card-img-wrap"><img src="https://images.unsplash.com/photo-1574158622682-e40e69881006?w=500&q=80" alt="Pepper"/></div>
+      <div class="card-body">
+        <div class="card-top"><span class="card-name">Pepper</span><span class="badge-available" id="badge-pepper">Available</span></div>
+        <div class="card-meta"><strong>Tuxedo Cat</strong> · 5 yrs · Female</div>
+        <div class="card-tags"><span class="tag">Affectionate</span><span class="tag">Lap cat</span><span class="tag">Calm</span></div>
+        <div class="card-footer">
+          <button class="btn-adopt" id="adopt-pepper" onclick="triggerAdopt('pepper','Pepper')">❤️ Adopt Me</button>
+          <a href="pet-profile.html?pet=pepper" class="btn-profile">Profile</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="pet-card" id="card-juniper">
+      <div class="card-img-wrap"><img src="https://images.unsplash.com/photo-1543852786-1cf6624b9987?w=500&q=80" alt="Juniper"/></div>
+      <div class="card-body">
+        <div class="card-top"><span class="card-name">Juniper</span><span class="badge-available" id="badge-juniper">Available</span></div>
+        <div class="card-meta"><strong>Calico Mix</strong> · 3 yrs · Female</div>
+        <div class="card-tags"><span class="tag">Bright</span><span class="tag">Social</span><span class="tag">Cat friendly</span></div>
+        <div class="card-footer">
+          <button class="btn-adopt" id="adopt-juniper" onclick="triggerAdopt('juniper','Juniper')">❤️ Adopt Me</button>
+          <a href="pet-profile.html?pet=juniper" class="btn-profile">Profile</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="pet-card" id="card-marbles">
+      <div class="card-img-wrap"><img src="https://images.unsplash.com/photo-1533738363-b7f9aef128ce?w=500&q=80" alt="Marbles"/></div>
+      <div class="card-body">
+        <div class="card-top"><span class="card-name">Marbles</span><span class="badge-available" id="badge-marbles">Available</span></div>
+        <div class="card-meta"><strong>Tabby Shorthair</strong> · 6 yrs · Male</div>
+        <div class="card-tags"><span class="tag">Senior sweetheart</span><span class="tag">Easygoing</span><span class="tag">Indoor</span></div>
+        <div class="card-footer">
+          <button class="btn-adopt" id="adopt-marbles" onclick="triggerAdopt('marbles','Marbles')">❤️ Adopt Me</button>
+          <a href="pet-profile.html?pet=marbles" class="btn-profile">Profile</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>© 2026 <strong>PetConnect+</strong> · Every pet deserves a loving home 🐾</footer>
+
+<script>
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext('2d');
+  let confettiParticles = [];
+  let confettiFrame;
+
+  function launchConfetti() {
+    canvas.style.display = 'block';
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    confettiParticles = [];
+    const colors = ['#38bdf8','#0ea5e9','#7dd3fc','#bae6fd','#fbbf24','#34d399','#a78bfa','#f472b6','#fff'];
+    for (let i = 0; i < 180; i++) {
+      confettiParticles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * -canvas.height,
+        w: Math.random() * 10 + 5,
+        h: Math.random() * 5 + 3,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        angle: Math.random() * Math.PI * 2,
+        spin: (Math.random() - .5) * .2,
+        vx: (Math.random() - .5) * 3,
+        vy: Math.random() * 4 + 2,
+        alpha: 1
+      });
+    }
+    animateConfetti();
+    setTimeout(() => { cancelAnimationFrame(confettiFrame); canvas.style.display='none'; }, 3500);
+  }
+
+  function animateConfetti() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    confettiParticles.forEach(p => {
+      p.y += p.vy; p.x += p.vx; p.angle += p.spin;
+      if (p.y > canvas.height * .7) p.alpha -= .025;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, p.alpha);
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.angle);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+      ctx.restore();
+    });
+    confettiFrame = requestAnimationFrame(animateConfetti);
+  }
+
+  function showToast(msg, type='info', duration=4000) {
+    const c = document.getElementById('toastContainer');
+    const t = document.createElement('div');
+    const icons = { success:'✅', info:'ℹ️', adopt:'🎉' };
+    t.className = `toast ${type}`;
+    t.innerHTML = `<span class="toast-icon">${icons[type]||'📬'}</span><span>${msg}</span>`;
+    c.appendChild(t);
+    requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('show')));
+    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 500); }, duration);
+  }
+
+  function triggerAdopt(id, name) {
+    launchConfetti();
+    const btn = document.getElementById('adopt-' + id);
+    btn.textContent = '🏡 Adopted!';
+    btn.classList.add('adopted');
+    btn.disabled = true;
+    const badge = document.getElementById('badge-' + id);
+    badge.className = 'badge-adopted';
+    badge.textContent = 'Adopted 🎉';
+    setTimeout(() => {
+      document.getElementById('modalPetName').textContent = name;
+      document.getElementById('adoptModal').classList.add('open');
+    }, 900);
+    showToast(`Congratulations! You're adopting ${name}! 🐾`, 'adopt', 5000);
+  }
+
+  function closeModal() {
+    document.getElementById('adoptModal').classList.remove('open');
+  }
+</script>
+</body>
+</html>
