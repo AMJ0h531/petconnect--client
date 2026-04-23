@@ -112,6 +112,8 @@
     .badge-available::before { content:''; width:6px; height:6px; background:var(--green); border-radius:50%; display:inline-block; animation:pulse 1.8s ease-in-out infinite; }
     @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.45;transform:scale(.75)} }
     .badge-adopted { display:inline-flex; align-items:center; gap:5px; background:#ede9fe; color:#7c3aed; font-size:.7rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:4px 11px; border-radius:99px; border:1.5px solid rgba(124,58,237,.2); white-space:nowrap; flex-shrink:0; }
+    .badge-pending { display:inline-flex; align-items:center; gap:5px; background:#fef3c7; color:#92400e; font-size:.7rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:4px 11px; border-radius:99px; border:1.5px solid rgba(146,64,14,.2); white-space:nowrap; flex-shrink:0; }
+    .badge-pending::before { content:''; width:6px; height:6px; background:#f59e0b; border-radius:50%; display:inline-block; animation:pulse 1.8s ease-in-out infinite; }
     .card-meta { font-size:.85rem; color:var(--text-soft); line-height:1.5; }
     .card-meta strong { color:var(--text); font-weight:600; }
     .card-tags { display:flex; flex-wrap:wrap; gap:6px; }
@@ -120,6 +122,7 @@
     .btn-adopt { flex:1; background:var(--sky-500); color:#fff; border:none; cursor:pointer; padding:11px 0; border-radius:99px; font-size:.9rem; font-weight:700; transition:background .2s,transform .15s,box-shadow .2s; text-align:center; text-decoration:none; box-shadow:0 3px 12px rgba(14,165,233,.28); }
     .btn-adopt:hover { background:var(--sky-600); transform:translateY(-1px); }
     .btn-adopt:disabled,.btn-adopt.adopted { background:#c4b5fd; cursor:default; box-shadow:none; transform:none; }
+    .btn-adopt.pending { background:#f59e0b; cursor:default; box-shadow:none; transform:none; }
     .btn-profile { background:transparent; color:var(--sky-700); border:1.5px solid var(--sky-200); cursor:pointer; padding:11px 18px; border-radius:99px; font-size:.9rem; font-weight:600; transition:border-color .2s,background .2s; text-decoration:none; white-space:nowrap; }
     .btn-profile:hover { border-color:var(--sky-400); background:var(--sky-50); }
 
@@ -183,6 +186,14 @@
     .btn-reset { width:100%; background:#fff; color:var(--sky-700); border:2px solid var(--sky-200); cursor:pointer; padding:12px; border-radius:99px; font-size:.95rem; font-weight:700; margin-top:10px; transition:background .2s,border-color .2s,color .2s; display:none; }
     .btn-reset:hover { background:var(--sky-50); border-color:var(--sky-400); }
     .btn-reset.show { display:block; }
+
+    /* ── REMINDERS LOCK ── */
+    .reminders-lock { background:rgba(240,249,255,.96); border:2px dashed var(--sky-200); border-radius:20px; padding:52px 24px; text-align:center; margin-bottom:32px; }
+    .reminders-lock-icon { font-size:2.8rem; display:block; margin-bottom:12px; }
+    .reminders-lock h3 { font-family:'Playfair Display',serif; font-size:1.4rem; color:var(--sky-900); margin-bottom:8px; }
+    .reminders-lock p { color:var(--text-soft); font-size:.92rem; max-width:440px; margin:0 auto 20px; line-height:1.65; }
+    .reminders-lock a { display:inline-block; background:var(--sky-500); color:#fff; padding:11px 28px; border-radius:99px; font-size:.9rem; font-weight:700; text-decoration:none; transition:background .2s; }
+    .reminders-lock a:hover { background:var(--sky-600); }
 
     /* ── TOAST ── */
     .toast-container { position:fixed; bottom:28px; right:28px; z-index:9999; display:flex; flex-direction:column; gap:10px; pointer-events:none; }
@@ -290,12 +301,12 @@
 <!-- ADOPTION MODAL -->
 <div class="overlay" id="adoptModal">
   <div class="modal">
-    <span class="modal-paw">🐾</span>
-    <h2>You're adopting <span class="modal-pet-name" id="modalPetName">Luna</span>!</h2>
-    <p>Congratulations on giving a pet a forever home. Would you like us to send a Pet Care Reminder form to your sitter now?</p>
+    <span class="modal-paw">⏳</span>
+    <h2>Application submitted for <span class="modal-pet-name" id="modalPetName">Luna</span>!</h2>
+    <p>Your application is now <strong>pending admin review</strong>. Care reminders will be unlocked once the admin approves your application.</p>
     <div class="modal-actions">
-      <button class="modal-btn-primary" onclick="goToReminderSection()">📋 Set Up Care Reminders</button>
-      <button class="modal-btn-secondary" onclick="closeModal()">Maybe Later</button>
+      <a href="admin-dashboard.html" class="modal-btn-primary" style="text-decoration:none;">View Admin Dashboard</a>
+      <button class="modal-btn-secondary" onclick="closeModal()">Got it</button>
     </div>
   </div>
 </div>
@@ -312,6 +323,7 @@
       <li><a href="match-quiz.html">Match Quiz</a></li>
       <li><a href="#reminders">Care Reminders</a></li>
       <li><a href="index.html" class="active">Browse All</a></li>
+      <li><a href="admin-dashboard.html">Admin</a></li>
     </ul>
   </nav>
 
@@ -349,7 +361,7 @@
           <div class="card-meta"><strong>Labrador Mix</strong> · 2 yrs · Female</div>
           <div class="card-tags"><span class="tag">Good with kids</span><span class="tag">Dog friendly</span><span class="tag">Cat friendly</span><span class="tag">Outdoor lover</span></div>
           <div class="card-footer">
-            <button class="btn-adopt" id="adopt-luna" onclick="triggerAdopt('luna','Luna')">❤️ Adopt Me</button>
+            <button class="btn-adopt" id="adopt-luna" onclick="triggerAdopt('luna','Luna')">Apply</button>
             <a href="pet-profile.html?pet=luna" class="btn-profile">Profile</a>
           </div>
         </div>
@@ -362,7 +374,7 @@
           <div class="card-meta"><strong>Border Collie Mix</strong> · 3 yrs · Male</div>
           <div class="card-tags"><span class="tag">Good with kids</span><span class="tag">Dog friendly</span><span class="tag">Indoor</span></div>
           <div class="card-footer">
-            <button class="btn-adopt" id="adopt-buddy" onclick="triggerAdopt('buddy','Buddy')">❤️ Adopt Me</button>
+            <button class="btn-adopt" id="adopt-buddy" onclick="triggerAdopt('buddy','Buddy')">Apply</button>
             <a href="pet-profile.html?pet=buddy" class="btn-profile">Profile</a>
           </div>
         </div>
@@ -375,7 +387,7 @@
           <div class="card-meta"><strong>Golden Retriever</strong> · 1 yr · Male</div>
           <div class="card-tags"><span class="tag">Puppy</span><span class="tag">Playful</span><span class="tag">Good with kids</span></div>
           <div class="card-footer">
-            <button class="btn-adopt" id="adopt-max" onclick="triggerAdopt('max','Max')">❤️ Adopt Me</button>
+            <button class="btn-adopt" id="adopt-max" onclick="triggerAdopt('max','Max')">Apply</button>
             <a href="pet-profile.html?pet=max" class="btn-profile">Profile</a>
           </div>
         </div>
@@ -388,7 +400,7 @@
           <div class="card-meta"><strong>Beagle Mix</strong> · 2 yrs · Female</div>
           <div class="card-tags"><span class="tag">Apartment friendly</span><span class="tag">Gentle</span><span class="tag">Snuggly</span></div>
           <div class="card-footer">
-            <button class="btn-adopt" id="adopt-daisy" onclick="triggerAdopt('daisy','Daisy')">❤️ Adopt Me</button>
+            <button class="btn-adopt" id="adopt-daisy" onclick="triggerAdopt('daisy','Daisy')">Apply</button>
             <a href="pet-profile.html?pet=daisy" class="btn-profile">Profile</a>
           </div>
         </div>
@@ -401,7 +413,7 @@
           <div class="card-meta"><strong>Boxer Mix</strong> · 4 yrs · Male</div>
           <div class="card-tags"><span class="tag">Goofy</span><span class="tag">Loves hikes</span><span class="tag">Dog friendly</span></div>
           <div class="card-footer">
-            <button class="btn-adopt" id="adopt-rocky" onclick="triggerAdopt('rocky','Rocky')">❤️ Adopt Me</button>
+            <button class="btn-adopt" id="adopt-rocky" onclick="triggerAdopt('rocky','Rocky')">Apply</button>
             <a href="pet-profile.html?pet=rocky" class="btn-profile">Profile</a>
           </div>
         </div>
@@ -414,7 +426,7 @@
           <div class="card-meta"><strong>Cocker Spaniel</strong> · 5 yrs · Female</div>
           <div class="card-tags"><span class="tag">Calm</span><span class="tag">Kid friendly</span><span class="tag">Easy walker</span></div>
           <div class="card-footer">
-            <button class="btn-adopt" id="adopt-coco" onclick="triggerAdopt('coco','Coco')">❤️ Adopt Me</button>
+            <button class="btn-adopt" id="adopt-coco" onclick="triggerAdopt('coco','Coco')">Apply</button>
             <a href="pet-profile.html?pet=coco" class="btn-profile">Profile</a>
           </div>
         </div>
@@ -427,7 +439,7 @@
           <div class="card-meta"><strong>Shepherd Mix</strong> · 2 yrs · Male</div>
           <div class="card-tags"><span class="tag">Smart</span><span class="tag">Active</span><span class="tag">Trainable</span></div>
           <div class="card-footer">
-            <button class="btn-adopt" id="adopt-finn" onclick="triggerAdopt('finn','Finn')">❤️ Adopt Me</button>
+            <button class="btn-adopt" id="adopt-finn" onclick="triggerAdopt('finn','Finn')">Apply</button>
             <a href="pet-profile.html?pet=finn" class="btn-profile">Profile</a>
           </div>
         </div>
@@ -440,7 +452,7 @@
           <div class="card-meta"><strong>Terrier Mix</strong> · 3 yrs · Female</div>
           <div class="card-tags"><span class="tag">Small dog</span><span class="tag">Playful</span><span class="tag">Homebody</span></div>
           <div class="card-footer">
-            <button class="btn-adopt" id="adopt-nala" onclick="triggerAdopt('nala','Nala')">❤️ Adopt Me</button>
+            <button class="btn-adopt" id="adopt-nala" onclick="triggerAdopt('nala','Nala')">Apply</button>
             <a href="pet-profile.html?pet=nala" class="btn-profile">Profile</a>
           </div>
         </div>
@@ -471,7 +483,7 @@
           <div class="card-meta"><strong>Tabby Mix</strong> · 4 yrs · Female</div>
           <div class="card-tags"><span class="tag">Good with kids</span><span class="tag">Dog friendly</span><span class="tag">Cat friendly</span><span class="tag">Indoor</span></div>
           <div class="card-footer">
-            <button class="btn-adopt" id="adopt-mittens" onclick="triggerAdopt('mittens','Mittens')">❤️ Adopt Me</button>
+            <button class="btn-adopt" id="adopt-mittens" onclick="triggerAdopt('mittens','Mittens')">Apply</button>
             <a href="pet-profile.html?pet=mittens" class="btn-profile">Profile</a>
           </div>
         </div>
@@ -484,7 +496,7 @@
           <div class="card-meta"><strong>Domestic Shorthair</strong> · 2 yrs · Male</div>
           <div class="card-tags"><span class="tag">Calm</span><span class="tag">Indoor</span><span class="tag">Cuddly</span></div>
           <div class="card-footer">
-            <button class="btn-adopt" id="adopt-whiskers" onclick="triggerAdopt('whiskers','Whiskers')">❤️ Adopt Me</button>
+            <button class="btn-adopt" id="adopt-whiskers" onclick="triggerAdopt('whiskers','Whiskers')">Apply</button>
             <a href="pet-profile.html?pet=whiskers" class="btn-profile">Profile</a>
           </div>
         </div>
@@ -497,7 +509,7 @@
           <div class="card-meta"><strong>Siamese Mix</strong> · 3 yrs · Female</div>
           <div class="card-tags"><span class="tag">Vocal</span><span class="tag">Playful</span><span class="tag">Dog friendly</span></div>
           <div class="card-footer">
-            <button class="btn-adopt" id="adopt-cleo" onclick="triggerAdopt('cleo','Cleo')">❤️ Adopt Me</button>
+            <button class="btn-adopt" id="adopt-cleo" onclick="triggerAdopt('cleo','Cleo')">Apply</button>
             <a href="pet-profile.html?pet=cleo" class="btn-profile">Profile</a>
           </div>
         </div>
@@ -510,7 +522,7 @@
           <div class="card-meta"><strong>Russian Blue Mix</strong> · 2 yrs · Female</div>
           <div class="card-tags"><span class="tag">Quiet</span><span class="tag">Elegant</span><span class="tag">Indoor</span></div>
           <div class="card-footer">
-            <button class="btn-adopt" id="adopt-olive" onclick="triggerAdopt('olive','Olive')">❤️ Adopt Me</button>
+            <button class="btn-adopt" id="adopt-olive" onclick="triggerAdopt('olive','Olive')">Apply</button>
             <a href="pet-profile.html?pet=olive" class="btn-profile">Profile</a>
           </div>
         </div>
@@ -523,7 +535,7 @@
           <div class="card-meta"><strong>Domestic Longhair</strong> · 1 yr · Male</div>
           <div class="card-tags"><span class="tag">Fluffy</span><span class="tag">Playful</span><span class="tag">Curious</span></div>
           <div class="card-footer">
-            <button class="btn-adopt" id="adopt-mochi" onclick="triggerAdopt('mochi','Mochi')">❤️ Adopt Me</button>
+            <button class="btn-adopt" id="adopt-mochi" onclick="triggerAdopt('mochi','Mochi')">Apply</button>
             <a href="pet-profile.html?pet=mochi" class="btn-profile">Profile</a>
           </div>
         </div>
@@ -536,7 +548,7 @@
           <div class="card-meta"><strong>Tuxedo Cat</strong> · 5 yrs · Female</div>
           <div class="card-tags"><span class="tag">Affectionate</span><span class="tag">Lap cat</span><span class="tag">Calm</span></div>
           <div class="card-footer">
-            <button class="btn-adopt" id="adopt-pepper" onclick="triggerAdopt('pepper','Pepper')">❤️ Adopt Me</button>
+            <button class="btn-adopt" id="adopt-pepper" onclick="triggerAdopt('pepper','Pepper')">Apply</button>
             <a href="pet-profile.html?pet=pepper" class="btn-profile">Profile</a>
           </div>
         </div>
@@ -549,7 +561,7 @@
           <div class="card-meta"><strong>Calico Mix</strong> · 3 yrs · Female</div>
           <div class="card-tags"><span class="tag">Bright</span><span class="tag">Social</span><span class="tag">Cat friendly</span></div>
           <div class="card-footer">
-            <button class="btn-adopt" id="adopt-juniper" onclick="triggerAdopt('juniper','Juniper')">❤️ Adopt Me</button>
+            <button class="btn-adopt" id="adopt-juniper" onclick="triggerAdopt('juniper','Juniper')">Apply</button>
             <a href="pet-profile.html?pet=juniper" class="btn-profile">Profile</a>
           </div>
         </div>
@@ -562,7 +574,7 @@
           <div class="card-meta"><strong>Tabby Shorthair</strong> · 6 yrs · Male</div>
           <div class="card-tags"><span class="tag">Senior sweetheart</span><span class="tag">Easygoing</span><span class="tag">Indoor</span></div>
           <div class="card-footer">
-            <button class="btn-adopt" id="adopt-marbles" onclick="triggerAdopt('marbles','Marbles')">❤️ Adopt Me</button>
+            <button class="btn-adopt" id="adopt-marbles" onclick="triggerAdopt('marbles','Marbles')">Apply</button>
             <a href="pet-profile.html?pet=marbles" class="btn-profile">Profile</a>
           </div>
         </div>
@@ -577,6 +589,17 @@
       <h2>📋 Pet Care Reminder System</h2>
     </div>
     <p class="reminder-subtext">The adoption center sends a care reminder checklist to the new owner. The owner reviews it and forwards it to their sitter. Once the sitter completes the form, both the owner <em>and</em> the adoption agency receive an automatic confirmation.</p>
+
+    <!-- LOCK BANNER — visible until admin approves an application -->
+    <div class="reminders-lock" id="remindersLock" style="display:none;">
+      <span class="reminders-lock-icon">🔒</span>
+      <h3>Care Reminders Locked</h3>
+      <p>Care reminders are only available after an adoption application has been approved by the admin.</p>
+      <a href="admin-dashboard.html">Go to Admin Dashboard</a>
+    </div>
+
+    <!-- FORM — shown only after an application is approved -->
+    <div id="remindersForm" style="display:none;">
 
     <!-- HOW IT WORKS -->
     <div class="reminder-flow">
@@ -700,6 +723,8 @@
 
       </div>
     </div>
+
+    </div><!-- end #remindersForm -->
   </section>
 
   <!-- FOOTER -->
@@ -816,39 +841,32 @@
   }
 
   // ── ADOPT FLOW ──
-  let currentAdoptPet = null;
-
   function triggerAdopt(id, name) {
-    currentAdoptPet = { id, name };
-    launchConfetti();
-    // Mark as adopted
+    // Show pending state on the card immediately
     const btn = document.getElementById('adopt-' + id);
-    btn.textContent = '🏡 Adopted!';
-    btn.classList.add('adopted');
+    btn.textContent = '⏳ Pending';
+    btn.classList.add('pending');
     btn.disabled = true;
     const badge = document.getElementById('badge-' + id);
-    badge.className = 'badge-adopted';
-    badge.textContent = 'Adopted 🎉';
-    // Show modal after short delay
+    badge.className = 'badge-pending';
+    badge.textContent = 'Pending Review';
+    // Persist application + pet status to localStorage
+    const apps = JSON.parse(localStorage.getItem('petconnect.applications') || '[]');
+    apps.push({ id: Date.now().toString(), petId: id, petName: name, status: 'pending', createdAt: new Date().toISOString() });
+    localStorage.setItem('petconnect.applications', JSON.stringify(apps));
+    const statuses = JSON.parse(localStorage.getItem('petconnect.pet.statuses') || '{}');
+    statuses[id] = 'pending';
+    localStorage.setItem('petconnect.pet.statuses', JSON.stringify(statuses));
+    // Show pending modal
     setTimeout(() => {
       document.getElementById('modalPetName').textContent = name;
       document.getElementById('adoptModal').classList.add('open');
-    }, 900);
-    showToast(`Congratulations! You're adopting ${name}! 🐾`, 'adopt', 5000);
+    }, 400);
+    showToast(`Application submitted for ${name}! Awaiting admin approval.`, 'info', 5000);
   }
 
   function closeModal() {
     document.getElementById('adoptModal').classList.remove('open');
-  }
-
-  function goToReminderSection() {
-    closeModal();
-    if (currentAdoptPet) {
-      document.getElementById('r-petName').value = currentAdoptPet.name;
-    }
-    setTimeout(() => {
-      document.getElementById('reminders').scrollIntoView({ behavior:'smooth' });
-    }, 200);
   }
 
   // ── REMINDER FORM ──
@@ -953,6 +971,38 @@
         item.classList.toggle('checked', item.querySelector('input').checked);
       });
     });
+
+    // Restore pet card states from localStorage after page refresh
+    const statuses = JSON.parse(localStorage.getItem('petconnect.pet.statuses') || '{}');
+    Object.entries(statuses).forEach(([petId, status]) => {
+      const btn   = document.getElementById('adopt-' + petId);
+      const badge = document.getElementById('badge-' + petId);
+      if (!btn || !badge) return;
+      if (status === 'pending') {
+        btn.textContent = '⏳ Pending'; btn.disabled = true; btn.classList.add('pending');
+        badge.className = 'badge-pending'; badge.textContent = 'Pending Review';
+      } else if (status === 'adopted') {
+        btn.textContent = '🏡 Adopted!'; btn.disabled = true; btn.classList.add('adopted');
+        badge.className = 'badge-adopted'; badge.textContent = 'Adopted 🎉';
+      }
+    });
+
+    // Lock care reminders until at least one application is approved
+    const apps = JSON.parse(localStorage.getItem('petconnect.applications') || '[]');
+    const approvedApp = apps.find(a => a.status === 'approved');
+    const lockEl = document.getElementById('remindersLock');
+    const formEl = document.getElementById('remindersForm');
+    if (lockEl && formEl) {
+      if (approvedApp) {
+        lockEl.style.display = 'none';
+        formEl.style.display = 'block';
+        const nameField = document.getElementById('r-petName');
+        if (nameField && !nameField.value) nameField.value = approvedApp.petName;
+      } else {
+        lockEl.style.display = 'block';
+        formEl.style.display = 'none';
+      }
+    }
   });
 
   document.addEventListener('click', event => {
