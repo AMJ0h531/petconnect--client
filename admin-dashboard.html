@@ -103,10 +103,28 @@
     .btn-login { width:100%; background:var(--sky-500); color:#fff; border:none; padding:13px; border-radius:99px; font-size:.95rem; font-weight:700; cursor:pointer; transition:background .2s; margin-top:6px; }
     .btn-login:hover { background:var(--sky-600); }
 
+    /* ── CARE REMINDER FORM ── */
+    .care-reminder-wrap { margin-top:40px; display:none; }
+    .care-reminder-wrap.show { display:block; }
+    .cr-card { background:#fff; border:1.5px solid var(--sky-200); border-radius:20px; overflow:hidden; box-shadow:var(--shadow); }
+    .cr-card-header { background:linear-gradient(135deg,var(--sky-600),#075985); padding:26px 32px; color:#fff; }
+    .cr-card-header h2 { font-family:'Playfair Display',serif; font-size:1.45rem; font-weight:700; margin-bottom:4px; }
+    .cr-card-header p { font-size:.88rem; opacity:.85; }
+    .cr-body { padding:30px 32px; display:flex; flex-direction:column; gap:16px; }
+    .cr-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .cr-group { display:flex; flex-direction:column; gap:6px; }
+    .cr-group label { font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--sky-700); }
+    .cr-group input, .cr-group textarea { background:var(--sky-50); border:1.5px solid var(--sky-200); border-radius:10px; padding:10px 14px; font-family:'DM Sans',sans-serif; font-size:.9rem; color:var(--text); outline:none; transition:border-color .2s,box-shadow .2s; width:100%; }
+    .cr-group input:focus, .cr-group textarea:focus { border-color:var(--sky-500); box-shadow:0 0 0 3px rgba(14,165,233,.12); }
+    .cr-group textarea { resize:vertical; min-height:78px; }
+    .btn-send-reminder { background:var(--green); color:#fff; border:none; padding:12px 32px; border-radius:99px; font-size:.92rem; font-weight:700; cursor:pointer; transition:background .2s,transform .15s; box-shadow:0 4px 14px rgba(5,150,105,.25); }
+    .btn-send-reminder:hover { background:#047857; transform:translateY(-1px); }
+
     @media(max-width:900px) {
       nav { padding:0 20px; }
       .page-wrap { padding:28px 20px 60px; }
       .summary-grid { grid-template-columns:repeat(2,1fr); }
+      .cr-row { grid-template-columns:1fr; }
     }
   </style>
 </head>
@@ -133,6 +151,23 @@
   </div>
 </div>
 
+<!-- DENY REASON MODAL -->
+<div class="login-overlay" id="denyModal" style="display:none;">
+  <div class="login-box">
+    <span class="login-icon">⚠️</span>
+    <h2>Deny Application</h2>
+    <p>Provide a reason — this will be shown to the applicant on their Owner Dashboard.</p>
+    <div class="login-field" style="text-align:left;">
+      <label>Reason for Denial</label>
+      <textarea id="denyReasonText" placeholder="e.g. We found a more suitable match for this pet based on living situation..." style="min-height:100px;border:1.5px solid var(--sky-200);border-radius:10px;padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:.9rem;width:100%;outline:none;resize:vertical;color:var(--text);"></textarea>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:10px;">
+      <button class="btn-login" style="background:#dc2626;" onclick="confirmDeny()">Confirm Denial</button>
+      <button class="btn-login" style="background:var(--text-soft);" onclick="cancelDeny()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast-container" id="toastContainer"></div>
 
 <nav>
@@ -152,7 +187,7 @@
       <h1>Admin Dashboard</h1>
       <p>Review adoption applications and approve or deny each request.</p>
     </div>
-    <button class="refresh-btn" onclick="window.location.reload()">↻ Refresh</button>
+    <button class="refresh-btn" onclick="renderDashboard()">↻ Refresh</button>
   </div>
 
   <div class="summary-grid" id="summaryGrid"></div>
@@ -165,6 +200,54 @@
   </div>
 
   <div class="apps-table" id="appsTable"></div>
+
+  <!-- CARE REMINDER FORM — shown after an application is approved -->
+  <div class="care-reminder-wrap" id="careReminderWrap">
+    <div class="cr-card">
+      <div class="cr-card-header">
+        <h2>📋 Send Care Reminder to New Owner</h2>
+        <p>Fill in the pet's care details below and send the reminder to the approved owner.</p>
+      </div>
+      <div class="cr-body">
+        <div class="cr-row">
+          <div class="cr-group">
+            <label>Pet Name</label>
+            <input type="text" id="cr-petName" placeholder="e.g. Luna"/>
+          </div>
+          <div class="cr-group">
+            <label>Owner Name</label>
+            <input type="text" id="cr-ownerName" placeholder="Full name"/>
+          </div>
+        </div>
+        <div class="cr-group">
+          <label>Owner Email</label>
+          <input type="email" id="cr-ownerEmail" placeholder="owner@email.com"/>
+        </div>
+        <div class="cr-row">
+          <div class="cr-group">
+            <label>Feeding Schedule</label>
+            <input type="text" id="cr-feeding" placeholder="e.g. 7am & 6pm, 1 cup each"/>
+          </div>
+          <div class="cr-group">
+            <label>Medications / Special Needs</label>
+            <input type="text" id="cr-meds" placeholder="e.g. Heartgard pill on Mondays"/>
+          </div>
+        </div>
+        <div class="cr-group">
+          <label>Vet Contact</label>
+          <input type="text" id="cr-vet" placeholder="e.g. Dr. Kim, City Animal Clinic — (614) 555-0199"/>
+        </div>
+        <div class="cr-group">
+          <label>Additional Care Notes</label>
+          <textarea id="cr-notes" placeholder="Behavioral notes, walking routine, favorite toys, allergies..."></textarea>
+        </div>
+        <div>
+          <button class="btn-send-reminder" onclick="sendCareReminder()">📧 Send Care Reminder to Owner</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -202,22 +285,39 @@
     const statuses = getStatuses();
     statuses[app.petId] = 'adopted';
     saveStatuses(statuses);
-    showToast(`✅ Approved! ${app.petName} is now marked Adopted. Care Reminders are now unlocked.`, 'success');
+    showToast(`✅ Approved! ${app.petName} is now marked Adopted. Fill in care reminders below.`, 'success');
     renderDashboard();
+    setTimeout(() => document.getElementById('careReminderWrap').scrollIntoView({ behavior:'smooth', block:'start' }), 300);
   }
 
+  let _pendingDenyId = null;
+
   function deny(appId) {
-    const apps = getApps();
-    const app  = apps.find(a => a.id === appId);
-    if (!app) return;
-    app.status = 'denied';
+    _pendingDenyId = appId;
+    document.getElementById('denyReasonText').value = '';
+    document.getElementById('denyModal').style.display = 'flex';
+  }
+
+  function cancelDeny() {
+    _pendingDenyId = null;
+    document.getElementById('denyModal').style.display = 'none';
+  }
+
+  function confirmDeny() {
+    const reason = document.getElementById('denyReasonText').value.trim();
+    const apps   = getApps();
+    const app    = apps.find(a => a.id === _pendingDenyId);
+    if (!app) { cancelDeny(); return; }
+    app.status     = 'denied';
     app.reviewedAt = new Date().toISOString();
+    app.denialReason = reason || 'No specific reason provided.';
     saveApps(apps);
-    const otherActive = apps.some(a => a.id !== appId && a.petId === app.petId && ['pending','approved'].includes(a.status));
+    const otherActive = apps.some(a => a.id !== _pendingDenyId && a.petId === app.petId && ['pending','approved'].includes(a.status));
     const statuses = getStatuses();
     statuses[app.petId] = otherActive ? 'pending' : 'available';
     saveStatuses(statuses);
-    showToast(`Application for ${app.petName} denied. Pet is available again.`, 'deny');
+    cancelDeny();
+    showToast(`Application for ${app.petName} denied.`, 'deny');
     renderDashboard();
   }
 
@@ -292,8 +392,39 @@
   }
 
   function renderDashboard() {
-    renderSummary(getApps());
+    const apps = getApps();
+    renderSummary(apps);
     renderTable();
+    updateCareReminderSection(apps);
+  }
+
+  function updateCareReminderSection(apps) {
+    const wrap = document.getElementById('careReminderWrap');
+    const approvedApp = apps.find(a => a.status === 'approved');
+    if (approvedApp) {
+      wrap.classList.add('show');
+      // Pre-fill fields only when still empty (don't overwrite admin's edits)
+      const nameEl  = document.getElementById('cr-petName');
+      const ownerEl = document.getElementById('cr-ownerName');
+      const emailEl = document.getElementById('cr-ownerEmail');
+      if (!nameEl.value)  nameEl.value  = approvedApp.petName         || '';
+      if (!ownerEl.value) ownerEl.value = approvedApp.applicantName   || '';
+      if (!emailEl.value) emailEl.value = approvedApp.applicantEmail  || '';
+    } else {
+      wrap.classList.remove('show');
+    }
+  }
+
+  function sendCareReminder() {
+    const petName    = document.getElementById('cr-petName').value.trim();
+    const ownerEmail = document.getElementById('cr-ownerEmail').value.trim();
+    const ownerName  = document.getElementById('cr-ownerName').value.trim();
+    if (!petName || !ownerEmail) {
+      showToast('Please fill in Pet Name and Owner Email before sending.', 'info');
+      return;
+    }
+    showToast(`📧 Care reminder for ${petName} sent to ${ownerEmail}!`, 'success');
+    setTimeout(() => showToast(`${ownerName || 'The owner'} will receive the full care instructions.`, 'success'), 1200);
   }
 
   function esc(s) {

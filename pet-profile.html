@@ -155,6 +155,22 @@
     .mini-pet-name { font-weight:700; font-size:.9rem; color:var(--text-strong); }
     .mini-pet-meta { font-size:.78rem; color:var(--text-soft); margin-top:2px; }
 
+    .badge-pending { display:inline-flex; align-items:center; gap:5px; background:#fef3c7; color:#92400e; font-size:.72rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:5px 13px; border-radius:99px; border:1.5px solid rgba(146,64,14,.2); }
+    .badge-pending::before { content:''; width:7px; height:7px; background:#f59e0b; border-radius:50%; display:inline-block; animation:pulse 1.8s ease-in-out infinite; }
+    .btn-adopt-main.pending { background:#f59e0b; cursor:default; box-shadow:none; transform:none; }
+
+    /* Apply form modal */
+    .apply-modal { max-width:520px; text-align:left; }
+    .apply-modal h2, .apply-modal > p { text-align:center; }
+    .a-form-group { display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
+    .a-form-group label { font-size:.82rem; font-weight:700; color:var(--sky-700); text-transform:uppercase; letter-spacing:.8px; }
+    .a-form-group input, .a-form-group textarea { background:var(--surface-soft); border:1.5px solid var(--border-color); border-radius:10px; padding:10px 14px; font-family:'DM Sans',sans-serif; font-size:.92rem; color:var(--text); transition:border-color .2s,box-shadow .2s; outline:none; width:100%; }
+    .a-form-group input:focus, .a-form-group textarea:focus { border-color:var(--sky-500); box-shadow:0 0 0 3px rgba(14,165,233,.12); }
+    .a-form-group textarea { resize:vertical; min-height:80px; }
+    .a-form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .a-required { color:#dc2626; }
+    @media(max-width:560px) { .a-form-row { grid-template-columns:1fr; } }
+
     /* Contact modal */
     .overlay { position:fixed; inset:0; background:rgba(12,45,69,.55); z-index:500; display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity .3s; backdrop-filter:blur(4px); }
     .overlay.open { opacity:1; pointer-events:all; }
@@ -204,6 +220,54 @@
 <canvas id="confetti-canvas"></canvas>
 <div class="toast-container" id="toastContainer"></div>
 
+<!-- APPLY FORM MODAL -->
+<div class="overlay" id="applyModal">
+  <div class="modal apply-modal">
+    <span style="font-size:3rem;display:block;margin-bottom:10px;text-align:center;">🐾</span>
+    <h2>Apply to Adopt <span id="applyModalPetName"></span></h2>
+    <p style="color:var(--text-soft);font-size:.92rem;line-height:1.6;margin-bottom:16px;">Complete the short form below and we'll send your application to the admin for review.</p>
+    <form onsubmit="submitApplication(event)">
+      <div class="a-form-row">
+        <div class="a-form-group">
+          <label>Full Name <span class="a-required">*</span></label>
+          <input type="text" id="app-name" placeholder="Your full name" required/>
+        </div>
+        <div class="a-form-group">
+          <label>Email <span class="a-required">*</span></label>
+          <input type="email" id="app-email" placeholder="you@email.com" required/>
+        </div>
+      </div>
+      <div class="a-form-group">
+        <label>Phone (optional)</label>
+        <input type="tel" id="app-phone" placeholder="(555) 000-0000"/>
+      </div>
+      <div class="a-form-group">
+        <label>Why do you want to adopt <span id="applyModalPetName2"></span>? <span class="a-required">*</span></label>
+        <textarea id="app-reason" placeholder="Tell us about yourself and why you'd be a great match..." required></textarea>
+      </div>
+      <input type="hidden" id="app-petId"/>
+      <input type="hidden" id="app-petNameHidden"/>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:6px;">
+        <button type="submit" style="background:var(--sky-500);color:#fff;border:none;padding:12px 28px;border-radius:99px;font-size:.95rem;font-weight:700;cursor:pointer;">Submit Application</button>
+        <button type="button" style="background:transparent;color:var(--sky-700);border:2px solid var(--sky-200);padding:11px 28px;border-radius:99px;font-size:.95rem;font-weight:700;cursor:pointer;" onclick="closeApplyModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- APPLICATION SUBMITTED MODAL -->
+<div class="overlay" id="adoptModal">
+  <div class="modal" style="text-align:center;">
+    <span style="font-size:3.5rem;display:block;margin-bottom:12px;">⏳</span>
+    <h2 style="font-family:'Playfair Display',serif;font-size:1.7rem;font-weight:900;color:var(--sky-900);margin-bottom:10px;">Application submitted for <span id="adoptModalPetName" style="color:var(--sky-600);"></span>!</h2>
+    <p style="color:var(--text-soft);font-size:.95rem;line-height:1.6;margin-bottom:24px;">Your application is now <strong>pending admin review</strong>. Sign in to your Owner Dashboard to track your status.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <a href="owner-dashboard.html" style="background:var(--sky-500);color:#fff;border:none;padding:12px 28px;border-radius:99px;font-size:.95rem;font-weight:700;text-decoration:none;">Go to Owner Dashboard</a>
+      <button style="background:transparent;color:var(--sky-700);border:2px solid var(--sky-200);padding:11px 28px;border-radius:99px;font-size:.95rem;font-weight:700;cursor:pointer;" onclick="closeAdoptModal()">Got it</button>
+    </div>
+  </div>
+</div>
+
 <!-- CONTACT MODAL -->
 <div class="overlay" id="contactModal">
   <div class="modal">
@@ -239,8 +303,9 @@
       <li><a href="/index.html#dogs">Dogs</a></li>
       <li><a href="/index.html#cats">Cats</a></li>
       <li><a href="match-quiz.html">Match Quiz</a></li>
-      <li><a href="/index.html#reminders">Care Reminders</a></li>
+      <li><a href="admin-dashboard.html">Care Reminders</a></li>
       <li><a href="/index.html" class="active">Browse All</a></li>
+      <li><a href="owner-dashboard.html">My Application</a></li>
     </ul>
     <button type="button" class="theme-toggle" id="themeToggle" aria-live="polite">Theme: Auto</button>
   </div>
@@ -271,7 +336,7 @@
       <div class="profile-tags" id="profileTags"></div>
     </div>
     <div class="profile-actions">
-      <button class="btn-adopt-main" id="adoptBtn" onclick="handleAdopt()">❤️ Adopt Me</button>
+      <button class="btn-adopt-main" id="adoptBtn" onclick="triggerAdopt()">Apply</button>
       <button class="btn-contact" onclick="openContactModal()">📬 Contact Shelter</button>
     </div>
   </div>
@@ -948,12 +1013,17 @@ function renderProfile(pet) {
   document.getElementById('bioParagraph').textContent = pet.bio;
   document.getElementById('typeBadge').textContent = pet.type;
 
-  // Status badge
-  if (pet.status === 'adopted') {
-    const b = document.getElementById('statusBadge');
-    b.className = 'badge-adopted'; b.textContent = 'Adopted 🎉';
-    const ab = document.getElementById('adoptBtn');
-    ab.textContent = '🏡 Already Adopted'; ab.disabled = true; ab.classList.add('adopted');
+  // Status badge — prefer localStorage over static pet data
+  const storedStatuses = JSON.parse(localStorage.getItem('petconnect.pet.statuses') || '{}');
+  const liveStatus = storedStatuses[pet.id] || pet.status;
+  const badge = document.getElementById('statusBadge');
+  const btn   = document.getElementById('adoptBtn');
+  if (liveStatus === 'adopted') {
+    badge.className = 'badge-adopted'; badge.textContent = 'Adopted 🎉';
+    btn.textContent = '🏡 Already Adopted'; btn.disabled = true; btn.classList.add('adopted');
+  } else if (liveStatus === 'pending') {
+    badge.className = 'badge-pending'; badge.textContent = 'Pending Review';
+    btn.textContent = '⏳ Pending'; btn.disabled = true; btn.classList.add('pending');
   }
 
   // Quick facts
@@ -1018,18 +1088,58 @@ function renderProfile(pet) {
   if (!mp.innerHTML) mp.innerHTML = '<p style="font-size:.85rem;color:var(--text-soft);">No other pets from this shelter right now.</p>';
 }
 
-// ── Adopt button ──────────────────────────────────────────────────────────────
-function handleAdopt() {
+// ── Apply flow ────────────────────────────────────────────────────────────────
+function triggerAdopt() {
   const params = new URLSearchParams(window.location.search);
-  const petId  = params.get('pet') || 'luna';
+  const petId  = (params.get('pet') || 'luna').toLowerCase();
   const pet    = PETS[petId];
-  launchConfetti();
-  const btn = document.getElementById('adoptBtn');
-  btn.textContent = '🏡 Adopted!'; btn.disabled = true; btn.classList.add('adopted');
+  document.getElementById('applyModalPetName').textContent  = pet.name;
+  document.getElementById('applyModalPetName2').textContent = pet.name;
+  document.getElementById('app-petId').value       = pet.id;
+  document.getElementById('app-petNameHidden').value = pet.name;
+  document.getElementById('app-name').value   = '';
+  document.getElementById('app-email').value  = '';
+  document.getElementById('app-phone').value  = '';
+  document.getElementById('app-reason').value = '';
+  document.getElementById('applyModal').classList.add('open');
+}
+
+function closeApplyModal() {
+  document.getElementById('applyModal').classList.remove('open');
+}
+
+function submitApplication(event) {
+  event.preventDefault();
+  const id        = document.getElementById('app-petId').value;
+  const name      = document.getElementById('app-petNameHidden').value;
+  const appName   = document.getElementById('app-name').value.trim();
+  const appEmail  = document.getElementById('app-email').value.trim();
+  const appPhone  = document.getElementById('app-phone').value.trim();
+  const appReason = document.getElementById('app-reason').value.trim();
+
+  // Mark the button and badge as pending
+  const btn   = document.getElementById('adoptBtn');
   const badge = document.getElementById('statusBadge');
-  badge.className = 'badge-adopted'; badge.textContent = 'Adopted 🎉';
-  showToast(`Congratulations! You're adopting ${pet.name}! 🐾`, 'adopt', 5000);
-  setTimeout(() => showToast('Contact the shelter to complete your adoption paperwork.', 'info', 6000), 1200);
+  btn.textContent = '⏳ Pending'; btn.disabled = true; btn.classList.add('pending');
+  badge.className = 'badge-pending'; badge.textContent = 'Pending Review';
+
+  // Save application to localStorage
+  const apps = JSON.parse(localStorage.getItem('petconnect.applications') || '[]');
+  apps.push({ id: Date.now().toString(), petId: id, petName: name, applicantName: appName, applicantEmail: appEmail, applicantPhone: appPhone, reason: appReason, status: 'pending', createdAt: new Date().toISOString() });
+  localStorage.setItem('petconnect.applications', JSON.stringify(apps));
+  const statuses = JSON.parse(localStorage.getItem('petconnect.pet.statuses') || '{}');
+  statuses[id] = 'pending';
+  localStorage.setItem('petconnect.pet.statuses', JSON.stringify(statuses));
+
+  // Show confirmation modal
+  closeApplyModal();
+  document.getElementById('adoptModalPetName').textContent = name;
+  setTimeout(() => document.getElementById('adoptModal').classList.add('open'), 150);
+  showToast(`Application for ${name} submitted! Check Owner Dashboard for updates.`, 'info', 5000);
+}
+
+function closeAdoptModal() {
+  document.getElementById('adoptModal').classList.remove('open');
 }
 
 // ── Contact modal ─────────────────────────────────────────────────────────────
