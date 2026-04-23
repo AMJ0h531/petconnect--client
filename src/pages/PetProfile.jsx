@@ -1,184 +1,271 @@
-// filepath: c:\Users\anna.a.johnson\IdeaProjects\petconnect--client\src\pages\PetProfile.jsx
-import { useEffect, useMemo } from 'react'
-import { Link, useParams, Navigate } from 'react-router-dom'
-
-const PETS = {
-  luna: {
-    id: 'luna',
-    name: 'Luna',
-    type: 'Dog',
-    breed: 'Labrador Mix',
-    age: '2 years',
-    gender: 'Female',
-    img: 'https://images.unsplash.com/photo-1601979031925-424e53b6caaa?w=900&q=85',
-    status: 'available',
-    tags: ['Good with kids', 'Dog friendly', 'Cat friendly', 'Outdoor lover', 'Leash trained'],
-    bio: `Luna is an absolute ray of sunshine wrapped in golden fur. She came to Happy Paws Shelter after her previous family relocated overseas, so she arrived already house-trained, leash-savvy, and full of love.`,
-    facts: [
-      { label: 'Shelter ID', value: '#HP-1042' },
-      { label: 'Weight', value: '55 lbs' },
-      { label: 'Coat', value: 'Short, golden' },
-      { label: 'Energy', value: 'High' },
-    ],
-    traits: ['Affectionate', 'Energetic', 'Playful', 'Curious', 'Loyal', 'Social'],
-    goodWith: [
-      { icon: '👶', label: 'Young Children', ok: true },
-      { icon: '🐕', label: 'Other Dogs', ok: true },
-      { icon: '🐈', label: 'Cats', ok: true },
-      { icon: '🏠', label: 'Apartment OK', ok: false },
-      { icon: '🌲', label: 'Outdoor Space', ok: true },
-      { icon: '🧒', label: 'Older Kids', ok: true },
-    ],
-    health: [
-      { label: 'Spayed / Neutered', value: 'Yes', badge: 'bg-emerald-100 text-emerald-700' },
-      { label: 'Vaccinations', value: 'Up to date — Rabies, DHPP, Bordetella', badge: 'bg-emerald-100 text-emerald-700' },
-      { label: 'Microchipped', value: 'Yes — ID #985141002345678', badge: 'bg-sky-100 text-sky-700' },
-    ],
-    shelter: {
-      name: 'Happy Paws Shelter',
-      address: '123 Main St, Columbus, OH 43215',
-      phone: '(614) 555-0199',
-      email: 'adopt@happypaws.org',
-      hours: 'Mon–Sat 9am–6pm · Sun 11am–4pm',
-    },
-  },
-  // Add more pets here as needed (e.g., buddy, max, etc.)
-}
+import { useEffect, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
+import applicationService from '../services/applicationService'
+import catService from '../services/catService'
+import dogService from '../services/dogService'
+import StatusBadge from '../components/StatusBadge'
 
 export default function PetProfile() {
   const { id } = useParams()
-  const pet = useMemo(() => PETS[id?.toLowerCase()], [id])
+  const navigate = useNavigate()
+  const { isLoggedIn, user } = useAuth()
+
+  const [pet, setPet] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [message, setMessage] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  const [appError, setAppError] = useState(null)
+  const [showApplicationForm, setShowApplicationForm] = useState(false)
 
   useEffect(() => {
-    document.title = pet ? `${pet.name} — PetConnect+` : 'Pet Not Found — PetConnect+'
-  }, [pet])
+    const fetchPet = async () => {
+      setLoading(true)
+      setError(null)
 
-  if (!pet) {
+      try {
+        let response
+        try {
+          response = await dogService.getById(id)
+        } catch {
+          response = await catService.getById(id)
+        }
+
+        setPet(response.data)
+      } catch {
+        setError('Pet not found')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchPet()
+  }, [id])
+
+  useEffect(() => {
+    const loadMyApplications = async () => {
+      if (!isLoggedIn || !user || !pet) return
+
+      try {
+        const response = await applicationService.getMyApplications()
+        const hasPendingApplication = response.data.some(application =>
+          application.pet?.id === pet.id && application.status === 'PENDING'
+        )
+        setSubmitted(hasPendingApplication)
+      } catch {
+        setSubmitted(false)
+      }
+    }
+
+    loadMyApplications()
+  }, [isLoggedIn, pet, user])
+
+  const handleApply = async (event) => {
+    event.preventDefault()
+
+    if (!isLoggedIn) {
+      navigate('/login')
+      return
+    }
+
+    setSubmitting(true)
+    setAppError(null)
+
+    try {
+      const response = await applicationService.submit(pet.id, message)
+      setPet(response.data.pet)
+      setSubmitted(true)
+      setShowApplicationForm(false)
+    } catch (err) {
+      setAppError(err.response?.data?.message || err.message || 'Could not submit application')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  if (loading) {
+    return <div className="max-w-4xl mx-auto px-4 py-10 animate-pulse">Loading...</div>
+  }
+
+  if (error) {
     return (
-      <div className="min-h-screen bg-stone-50 px-4 py-16 text-center">
-        <p className="text-6xl">🐾</p>
-        <h1 className="mt-6 text-3xl font-semibold text-slate-900">Pet not found</h1>
-        <p className="mt-3 text-slate-600">We couldn't find that pet profile.</p>
-        <Link
-          to="/"
-          className="mt-8 inline-flex rounded-full bg-sky-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-sky-700"
-        >
-          Back to Browse
-        </Link>
+      <div className="max-w-4xl mx-auto px-4 py-20 text-center">
+        <p className="text-stone-500 mb-4">{error}</p>
+        <Link to="/" className="text-teal-500 underline text-sm">Back to home</Link>
       </div>
     )
   }
 
+  if (!pet) return null
+
+  const browsePath = pet.species === 'DOG' ? '/dogs' : '/cats'
+  const browseLabel = pet.species === 'DOG' ? 'dogs' : 'cats'
+  const isPetAvailable = pet.status === 'AVAILABLE'
+  const isPetPending = pet.status === 'PENDING'
+  const isPetAdopted = pet.status === 'ADOPTED'
+
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900">
-      <div className="mx-auto max-w-7xl px-4 py-10">
-        <div className="mb-6 flex flex-wrap items-center gap-3 text-sm">
-          <Link to="/" className="rounded-full border border-slate-300 px-4 py-2 text-slate-700 transition hover:bg-slate-100">
-            ← Back to Browse
-          </Link>
-          <span className="rounded-full bg-sky-100 px-3 py-2 text-sky-700">{pet.type}</span>
-          <span className="rounded-full bg-emerald-100 px-3 py-2 text-emerald-700">
-            {pet.status === 'available' ? 'Available' : 'Adopted'}
-          </span>
+    <div className="max-w-5xl mx-auto px-4 py-10">
+      <nav className="text-sm text-stone-400 mb-6">
+        <Link to="/" className="hover:text-stone-600">Home</Link>
+        <span className="mx-2">/</span>
+        <Link to={browsePath} className="hover:text-stone-600 capitalize">
+          {browseLabel}
+        </Link>
+        <span className="mx-2">/</span>
+        <span className="text-stone-600">{pet.name}</span>
+      </nav>
+
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
+        <div>
+          <div className="relative mb-4 h-80 overflow-hidden rounded-2xl bg-stone-100">
+            {pet.imageUrl ? (
+              <img src={pet.imageUrl} alt={pet.name} className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-8xl text-stone-200">
+                {pet.species === 'CAT' ? '🐱' : '🐶'}
+              </div>
+            )}
+            <div className="absolute left-4 top-4">
+              <StatusBadge status={pet.status} />
+            </div>
+          </div>
+
+          <div className="mb-4 grid grid-cols-2 gap-3">
+            <StatCard label="Age" value={pet.age ? `${pet.age} year${pet.age !== 1 ? 's' : ''}` : 'Unknown'} />
+            <StatCard label="Breed" value={pet.breed} />
+            {pet.size && <StatCard label="Size" value={formatEnum(pet.size)} />}
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {pet.goodWithKids && <Trait label="Good with kids" />}
+            {pet.goodWithDogs && <Trait label="Good with dogs" />}
+            {pet.goodWithCats && <Trait label="Good with cats" />}
+            {pet.isVaccinated && <Trait label="Vaccinated" />}
+          </div>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
-          <article className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-lg">
-            <div className="relative min-h-[360px]">
-              <img src={pet.img} alt={pet.name} className="h-full w-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-white/60" />
-            </div>
-            <div className="space-y-6 p-8">
-              <div className="space-y-3">
-                <div className="text-4xl font-black tracking-tight">{pet.name}</div>
-                <p className="text-sm text-slate-600">{pet.breed} · {pet.age} · {pet.gender}</p>
-              </div>
+        <div>
+          <h1 className="font-display text-4xl font-bold text-stone-800 mb-1">{pet.name}</h1>
+          <p className="text-stone-400 text-sm mb-6">{pet.breed}</p>
+          {pet.description && <p className="text-stone-600 leading-relaxed mb-8">{pet.description}</p>}
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                {pet.facts.map((fact) => (
-                  <div key={fact.label} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-700">{fact.label}</p>
-                    <p className="mt-2 text-sm font-semibold text-slate-900">{fact.value}</p>
-                  </div>
-                ))}
-              </div>
+          {isPetAvailable && (
+            <div className="rounded-2xl border border-stone-100 bg-stone-50 p-6">
+              <h2 className="font-display text-xl font-semibold text-stone-800 mb-3">
+                Apply to adopt {pet.name}
+              </h2>
+              <p className="mb-4 text-sm text-stone-500">
+                The adopt button now sends an application to the admin for review before the adoption is finalized.
+              </p>
 
-              <div className="flex flex-wrap gap-2">
-                {pet.tags.map((tag) => (
-                  <span key={tag} className="rounded-full border border-slate-200 bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <Link
-                  to={`/pets/${pet.id}/apply`}
-                  className="inline-flex flex-1 items-center justify-center rounded-full bg-sky-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-sky-700"
-                >
-                  Apply to Adopt
-                </Link>
-                <Link
-                  to="/contact"
-                  className="inline-flex flex-1 items-center justify-center rounded-full border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
-                >
-                  Contact Shelter
-                </Link>
-              </div>
-            </div>
-          </article>
-
-          <section className="space-y-6">
-            <div className="rounded-[24px] border border-slate-200 bg-white p-8 shadow-lg">
-              <h2 className="mb-4 text-xl font-semibold">About {pet.name}</h2>
-              <p className="text-sm leading-7 text-slate-600">{pet.bio}</p>
-              <div className="mt-6 flex flex-wrap gap-2">
-                {pet.traits.map((trait) => (
-                  <span key={trait} className="rounded-full bg-sky-100 px-4 py-2 text-xs font-semibold text-sky-700">
-                    {trait}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="rounded-[24px] border border-slate-200 bg-white p-8 shadow-lg">
-              <h2 className="mb-4 text-xl font-semibold">Health & Vaccination</h2>
-              <div className="space-y-3 text-sm text-slate-700">
-                {pet.health.map((item) => (
-                  <div key={item.label} className="flex items-start justify-between rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                    <span className="font-semibold text-slate-900">{item.label}</span>
-                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${item.badge}`}>
-                      {item.value}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="rounded-[24px] border border-slate-200 bg-white p-8 shadow-lg">
-              <h2 className="mb-4 text-xl font-semibold">Good With</h2>
-              <div className="grid gap-3">
-                {pet.goodWith.map((item) => (
-                  <div
-                    key={item.label}
-                    className={`rounded-2xl p-4 ${item.ok ? 'bg-emerald-50 border border-emerald-100' : 'bg-rose-50 border border-rose-100'}`}
+              {submitted ? (
+                <div className="rounded-xl border border-teal-100 bg-teal-50 p-4 text-sm text-teal-700">
+                  Your application has been submitted. This pet is now pending admin review.
+                </div>
+              ) : !isLoggedIn ? (
+                <div className="py-2 text-center">
+                  <p className="mb-4 text-sm text-stone-500">You need an account to apply.</p>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/login')}
+                    className="rounded-xl bg-teal-500 px-6 py-3 text-sm font-medium text-white hover:bg-teal-600"
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{item.icon}</span>
-                      <div>
-                        <p className="font-semibold text-slate-900">{item.label}</p>
-                        <p className={`text-sm ${item.ok ? 'text-emerald-700' : 'text-rose-700'}`}>
-                          {item.ok ? 'Yes' : 'No'}
-                        </p>
-                      </div>
-                    </div>
+                    Sign in to apply
+                  </button>
+                </div>
+              ) : !showApplicationForm ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowApplicationForm(true)
+                    setAppError(null)
+                  }}
+                  className="w-full rounded-xl bg-teal-500 py-3 font-semibold text-white hover:bg-teal-600"
+                >
+                  Adopt {pet.name}
+                </button>
+              ) : (
+                <form onSubmit={handleApply} className="space-y-4">
+                  <div>
+                    <label className="mb-1 block text-sm text-stone-600">
+                      Tell the shelter about yourself <span className="text-stone-400">(optional)</span>
+                    </label>
+                    <textarea
+                      value={message}
+                      onChange={event => setMessage(event.target.value)}
+                      rows={4}
+                      placeholder={`Why would ${pet.name} be a great fit?`}
+                      className="w-full resize-none rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300"
+                    />
                   </div>
-                ))}
-              </div>
+                  {appError && <p className="text-sm text-red-500">{appError}</p>}
+                  <div className="flex gap-3">
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="flex-1 rounded-xl bg-teal-500 py-3 font-semibold text-white hover:bg-teal-600 disabled:opacity-50"
+                    >
+                      {submitting ? 'Submitting...' : `Send application for ${pet.name}`}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowApplicationForm(false)}
+                      className="rounded-xl border border-stone-200 px-4 py-3 font-medium text-stone-600 hover:bg-stone-100"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
-          </section>
+          )}
+
+          {isPetPending && (
+            <div className="rounded-2xl border border-amber-100 bg-amber-50 p-6 text-center">
+              <p className="mb-2 font-medium text-amber-800">{pet.name} already has an adoption request under review.</p>
+              <p className="mb-4 text-sm text-amber-700">
+                While the application is pending, the adopt button is locked so nobody else can adopt this pet at the same time.
+              </p>
+              <Link to={browsePath} className="text-sm text-amber-700 underline">
+                Browse more {browseLabel}
+              </Link>
+            </div>
+          )}
+
+          {isPetAdopted && (
+            <div className="rounded-2xl border border-blue-100 bg-blue-50 p-6 text-center">
+              <p className="mb-2 font-medium text-blue-700">{pet.name} has found a home!</p>
+              <Link to={browsePath} className="text-sm text-blue-600 underline">
+                Browse more {browseLabel}
+              </Link>
+            </div>
+          )}
         </div>
       </div>
-    </main>
+    </div>
   )
+}
+
+function StatCard({ label, value }) {
+  return (
+    <div className="rounded-xl border border-stone-100 bg-white px-4 py-3">
+      <p className="mb-0.5 text-xs text-stone-400">{label}</p>
+      <p className="text-sm font-semibold text-stone-700">{value}</p>
+    </div>
+  )
+}
+
+function Trait({ label }) {
+  return (
+    <span className="rounded-full bg-teal-50 px-3 py-1 text-xs font-medium text-teal-700">
+      {label}
+    </span>
+  )
+}
+
+function formatEnum(value) {
+  return String(value).toLowerCase().replace(/_/g, ' ')
 }

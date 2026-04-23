@@ -1,16 +1,21 @@
-// src/services/applicationService.js
-import api from './api'
+import { createApplication, listApplications, reviewApplication } from './mockStore'
 
 const applicationService = {
-  submit:  (petId, message) =>
-    api.post('/applications', { petId, message }),
+  submit: async (petId, message) => ({
+    data: createApplication({ petId, message }),
+  }),
 
-  getMyApplications: () =>
-    api.get('/applications/my'),
+  getMyApplications: async () => ({
+    data: listApplications({ currentUserOnly: true }),
+  }),
 
-  // Admin/Shelter: approve or deny
-  updateStatus: (applicationId, status) =>
-    api.put(`/applications/${applicationId}/status`, { status }),
+  updateStatus: async (applicationId, status) => ({
+    data: reviewApplication(applicationId, status),
+  }),
+
+  getAll: async () => ({
+    data: listApplications(),
+  }),
 }
 
 export default applicationService

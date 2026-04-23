@@ -1,348 +1,171 @@
-import { useState, useEffect } from 'react'
-import dogService          from '../services/dogService'
-import catService          from '../services/catService'
-import applicationService  from '../services/applicationService'
-import StatusBadge         from '../components/StatusBadge'
+import { useEffect, useState } from 'react'
+import applicationService from '../services/applicationService'
+import StatusBadge from '../components/StatusBadge'
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState('pets')
-  const [dogs,      setDogs]      = useState([])
-  const [cats,      setCats]      = useState([])
-  const [apps,      setApps]      = useState([])
-  const [loading,   setLoading]   = useState(true)
-
-  // Add pet form state
-  const [showAddForm, setShowAddForm]   = useState(false)
-  const [newPetType,  setNewPetType]    = useState('dog')
-  const [formData,    setFormData]      = useState({
-    name:'', breed:'', age:'', description:'', size:'MEDIUM',
-    goodWithKids: false, goodWithDogs: false, goodWithCats: false,
-    indoorOutdoor: 'INDOOR', isVaccinated: false
-  })
-  const [saving,  setSaving]  = useState(false)
-  const [saveMsg, setSaveMsg] = useState(null)
-
-  // New: Filter for applications
-  const [appFilter, setAppFilter] = useState('all') // 'all', 'PENDING', 'APPROVED', 'DENIED'
+  const [apps, setApps] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [appFilter, setAppFilter] = useState('all')
+  const [actionError, setActionError] = useState(null)
+  const [activeActionId, setActiveActionId] = useState(null)
 
   useEffect(() => {
-    loadAll()
-    if (activeTab === 'applications') loadApplications() // Load apps when tab is active
-  }, [activeTab])
+    loadApplications()
+  }, [])
 
-  const loadAll = async () => {
+  const loadApplications = async () => {
     setLoading(true)
+
     try {
-      const [dogsRes, catsRes] = await Promise.all([
-        dogService.getAll({}, 0, 50),
-        catService.getAll({}, 0, 50),
-      ])
-      setDogs(dogsRes.data.content || [])
-      setCats(catsRes.data.content || [])
-    } catch (e) {
-      console.error('Failed to load pets', e)
+      const response = await applicationService.getAll()
+      setApps(response.data || [])
+      setActionError(null)
+    } catch (error) {
+      console.error('Failed to load applications', error)
+      setActionError('Could not load adoption applications.')
     } finally {
       setLoading(false)
     }
   }
 
-  const loadApplications = async () => {
-    try {
-      const appsRes = await applicationService.getAll() // Assuming this fetches applications
-      setApps(appsRes.data || [])
-    } catch (e) {
-      console.error('Failed to load applications', e)
-    }
-  }
+  const handleAction = async (appId, action) => {
+    setActiveActionId(appId)
+    setActionError(null)
 
-  // ── Update application status ─────────────────────────────────────────
-  const handleAppStatus = async (appId, newStatus) => {
     try {
-      await applicationService.updateStatus(appId, newStatus)
-      setApps(prev => prev.map(a =>
-        a.id === appId ? { ...a, status: newStatus } : a
-      ))
-      // New: Simulate email sending
-      const app = apps.find(a => a.id === appId)
-      const subject = newStatus === 'APPROVED' ? 'Adoption Approved!' : 'Adoption Denied'
-      const message = newStatus === 'APPROVED'
-        ? `Congratulations! Your application for ${app.pet?.name} has been approved. Contact the shelter to proceed.`
-        : `We're sorry, but your application for ${app.pet?.name} has been denied. Thank you for your interest.`
-      console.log(`Email sent to ${app.user?.email || 'applicant'}: ${subject} - ${message}`)
-      alert(`Email simulated: ${subject} sent to applicant.`)
-    } catch (e) {
-      alert('Could not update status')
-    }
-  }
-
-  // ── Delete a pet listing ───────────────────────────────────────────────
-  const handleDelete = async (id, type) => {
-    if (!window.confirm('Remove this listing?')) return
-    try {
-      if (type === 'dog') {
-        await dogService.delete(id)
-        setDogs(prev => prev.filter(d => d.id !== id))
-      } else {
-        await catService.delete(id)
-        setCats(prev => prev.filter(c => c.id !== id))
-      }
-    } catch {
-      alert('Could not delete listing')
-    }
-  }
-
-  // ── Add new pet ────────────────────────────────────────────────────────
-  const handleAddPet = async (e) => {
-    e.preventDefault()
-    setSaving(true)
-    setSaveMsg(null)
-    try {
-      if (newPetType === 'dog') {
-        await dogService.create({
-          ...formData,
-          age: parseInt(formData.age) || 0
-        })
-      } else {
-        await catService.create({
-          ...formData,
-          age: parseInt(formData.age) || 0
-        })
-      }
-      setSaveMsg('Pet listing created!')
-      setShowAddForm(false)
-      setFormData({ name:'', breed:'', age:'', description:'',
-                    size:'MEDIUM', goodWithKids:false,
-                    goodWithDogs:false, goodWithCats:false,
-                    indoorOutdoor:'INDOOR', isVaccinated:false })
-      loadAll()
-    } catch {
-      setSaveMsg('Failed to create listing.')
+      await applicationService.updateStatus(appId, action)
+      await loadApplications()
+    } catch (error) {
+      console.error('Could not update application', error)
+      setActionError('Could not update that application.')
     } finally {
-      setSaving(false)
+      setActiveActionId(null)
     }
   }
 
-  const allPets = [
-    ...dogs.map(d => ({ ...d, _type: 'dog' })),
-    ...cats.map(c => ({ ...c, _type: 'cat' })),
-  ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-
-  // New: Filter applications
-  const filteredApps = apps.filter(app =>
-    appFilter === 'all' || app.status === appFilter
-  )
+  const filteredApps = apps.filter(app => appFilter === 'all' || app.status === appFilter)
+  const counts = {
+    total: apps.length,
+    pending: apps.filter(app => app.status === 'PENDING').length,
+    approved: apps.filter(app => app.status === 'APPROVED').length,
+    denied: apps.filter(app => app.status === 'DENIED').length,
+  }
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-10">
-
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="font-display text-3xl font-bold text-stone-800">
-            Admin Dashboard
-          </h1>
-          <p className="text-stone-400 text-sm mt-1">
-            {dogs.length} dogs · {cats.length} cats listed
+          <h1 className="text-3xl font-bold text-stone-800">Admin Dashboard</h1>
+          <p className="mt-2 text-sm text-stone-500">
+            Review adoption requests and decide which pets move from pending review to adopted.
           </p>
         </div>
-        <button onClick={() => setShowAddForm(v => !v)}
-          className="px-5 py-2.5 bg-teal-500 text-white rounded-xl
-                     font-medium text-sm hover:bg-teal-600 transition-colors">
-          {showAddForm ? 'Cancel' : '+ Add pet'}
+        <button
+          type="button"
+          onClick={loadApplications}
+          className="rounded-xl border border-stone-200 px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-50"
+        >
+          Refresh queue
         </button>
       </div>
 
-      {/* Add pet form */}
-      {showAddForm && (
-        <div className="bg-white rounded-2xl border border-stone-100 p-6 mb-8">
-          <h2 className="font-semibold text-stone-700 mb-4">New pet listing</h2>
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <SummaryCard label="Total requests" value={counts.total} tone="stone" />
+        <SummaryCard label="Pending review" value={counts.pending} tone="amber" />
+        <SummaryCard label="Approved" value={counts.approved} tone="teal" />
+        <SummaryCard label="Rejected" value={counts.denied} tone="red" />
+      </div>
 
-          {/* Species toggle */}
-          <div className="flex gap-3 mb-4">
-            {['dog','cat'].map(t => (
-              <button key={t} onClick={() => setNewPetType(t)}
-                className={`px-4 py-2 rounded-xl text-sm font-medium
-                            transition-colors capitalize
-                            ${newPetType === t
-                              ? 'bg-teal-500 text-white'
-                              : 'bg-stone-100 text-stone-600'}`}>
-                {t}
-              </button>
-            ))}
-          </div>
+      <div className="mb-4 flex flex-wrap gap-2">
+        {['all', 'PENDING', 'APPROVED', 'DENIED'].map(filter => (
+          <button
+            key={filter}
+            onClick={() => setAppFilter(filter)}
+            className={`rounded-xl px-4 py-2 text-sm font-medium ${
+              appFilter === filter ? 'bg-teal-500 text-white' : 'bg-stone-200 text-stone-700'
+            }`}
+          >
+            {filter === 'all' ? 'All' : filter}
+          </button>
+        ))}
+      </div>
 
-          <form onSubmit={handleAddPet}
-            className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <AdminField label="Name" required
-              value={formData.name}
-              onChange={v => setFormData(f => ({ ...f, name: v }))} />
-            <AdminField label="Breed" required
-              value={formData.breed}
-              onChange={v => setFormData(f => ({ ...f, breed: v }))} />
-            <AdminField label="Age (years)" type="number"
-              value={formData.age}
-              onChange={v => setFormData(f => ({ ...f, age: v }))} />
-
-            {newPetType === 'dog' ? (
-              <div>
-                <label className="block text-xs text-stone-500 mb-1">
-                  Size
-                </label>
-                <select
-                  value={formData.size}
-                  onChange={e =>
-                    setFormData(f => ({ ...f, size: e.target.value }))}
-                  className="w-full text-sm border border-stone-200 rounded-lg
-                             px-3 py-2 focus:outline-none focus:ring-2
-                             focus:ring-teal-300">
-                  {['SMALL','MEDIUM','LARGE','EXTRA_LARGE'].map(s => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-              </div>
-            ) : (
-              <div>
-                <label className="block text-xs text-stone-500 mb-1">
-                  Indoor / Outdoor
-                </label>
-                <select
-                  value={formData.indoorOutdoor}
-                  onChange={e =>
-                    setFormData(f => ({
-                      ...f, indoorOutdoor: e.target.value
-                    }))}
-                  className="w-full text-sm border border-stone-200 rounded-lg
-                             px-3 py-2 focus:outline-none focus:ring-2
-                             focus:ring-teal-300">
-                  {['INDOOR','OUTDOOR','BOTH'].map(s => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            <div className="md:col-span-2">
-              <label className="block text-xs text-stone-500 mb-1">
-                Description
-              </label>
-              <textarea rows={3}
-                value={formData.description}
-                onChange={e =>
-                  setFormData(f => ({ ...f, description: e.target.value }))}
-                className="w-full text-sm border border-stone-200 rounded-lg
-                           px-3 py-2 resize-none focus:outline-none
-                           focus:ring-2 focus:ring-teal-300" />
-            </div>
-
-            {/* Trait checkboxes */}
-            <div className="md:col-span-2 flex flex-wrap gap-4">
-              {[
-                ['goodWithKids', 'Good with kids'],
-                ['goodWithDogs', 'Good with dogs'],
-                ['goodWithCats', 'Good with cats'],
-                ['isVaccinated', 'Vaccinated'],
-              ].map(([key, label]) => (
-                <label key={key}
-                  className="flex items-center gap-2 text-sm text-stone-600
-                             cursor-pointer">
-                  <input type="checkbox"
-                    checked={!!formData[key]}
-                    onChange={e =>
-                      setFormData(f => ({ ...f, [key]: e.target.checked }))}
-                    className="w-4 h-4 accent-teal-600" />
-                  {label}
-                </label>
-              ))}
-            </div>
-
-            <div className="md:col-span-2 flex items-center gap-3">
-              <button type="submit" disabled={saving}
-                className="px-6 py-2.5 bg-teal-500 text-white rounded-xl
-                           text-sm font-medium hover:bg-teal-600
-                           disabled:opacity-50 transition-colors">
-                {saving ? 'Saving…' : 'Create listing'}
-              </button>
-              {saveMsg && (
-                <span className="text-sm text-teal-600">{saveMsg}</span>
-              )}
-            </div>
-          </form>
+      {actionError && (
+        <div className="mb-4 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+          {actionError}
         </div>
       )}
 
-      {/* Tab bar */}
-      <div className="flex gap-2 mb-6">
-        {[['pets','All Pets'], ['applications','Applications']].map(
-          ([key, label]) => (
-            <button key={key} onClick={() => setActiveTab(key)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium
-                          transition-colors
-                          ${activeTab === key
-                            ? 'bg-stone-800 text-white'
-                            : 'bg-white border border-stone-200 text-stone-500'
-                          }`}>
-              {label}
-            </button>
-          )
-        )}
-      </div>
-
-      {/* Pets table */}
-      {activeTab === 'pets' && (
-        <div className="bg-white rounded-2xl border border-stone-100
-                        overflow-hidden">
-          {loading ? (
-            <div className="p-8 text-center text-stone-400 animate-pulse">
-              Loading…
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <div className="overflow-hidden rounded-2xl border border-stone-100 bg-white">
+          {filteredApps.length === 0 ? (
+            <div className="px-6 py-12 text-center text-sm text-stone-500">
+              No applications match this filter right now.
             </div>
           ) : (
             <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-stone-100 text-left">
-                  <th className="px-4 py-3 font-medium text-stone-500">Pet</th>
-                  <th className="px-4 py-3 font-medium text-stone-500">
-                    Type
-                  </th>
-                  <th className="px-4 py-3 font-medium text-stone-500">
-                    Status
-                  </th>
-                  <th className="px-4 py-3 font-medium text-stone-500">
-                    Listed
-                  </th>
-                  <th className="px-4 py-3" />
+              <thead className="bg-stone-50 text-left">
+                <tr className="border-b border-stone-100">
+                  <th className="px-4 py-3">Applicant</th>
+                  <th className="px-4 py-3">Pet</th>
+                  <th className="px-4 py-3">Submitted</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Application</th>
+                  <th className="px-4 py-3">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {allPets.map(pet => (
-                  <tr key={`${pet._type}-${pet.id}`}
-                    className="border-b border-stone-50
-                               hover:bg-stone-50 transition-colors">
-                    <td className="px-4 py-3">
-                      <div className="font-medium text-stone-800">
-                        {pet.name}
-                      </div>
-                      <div className="text-xs text-stone-400">{pet.breed}</div>
+                {filteredApps.map(app => (
+                  <tr key={app.id} className="align-top border-b border-stone-100 last:border-b-0">
+                    <td className="px-4 py-4">
+                      <div className="font-medium text-stone-800">{app.user?.username || 'Applicant'}</div>
+                      <div className="text-xs text-stone-400">{app.user?.email || 'No email provided'}</div>
                     </td>
-                    <td className="px-4 py-3">
-                      <span className="capitalize text-stone-500">
-                        {pet._type}
-                      </span>
+                    <td className="px-4 py-4">
+                      <div className="font-medium text-stone-800">{app.pet?.name || 'Unknown pet'}</div>
+                      <div className="text-xs text-stone-400">{app.pet?.breed || 'Breed unavailable'}</div>
+                      {app.pet?.status && (
+                        <div className="mt-2">
+                          <StatusBadge status={app.pet.status} />
+                        </div>
+                      )}
                     </td>
-                    <td className="px-4 py-3">
-                      <StatusBadge status={pet.status} />
+                    <td className="px-4 py-4 text-stone-500">
+                      {new Date(app.createdAt).toLocaleString()}
                     </td>
-                    <td className="px-4 py-3 text-stone-400">
-                      {pet.createdAt
-                        ? new Date(pet.createdAt).toLocaleDateString()
-                        : '—'}
+                    <td className="px-4 py-4">
+                      <AppStatusBadge status={app.status} />
                     </td>
-                    <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={() => handleDelete(pet.id, pet._type)}
-                        className="text-xs text-red-400 hover:text-red-600
-                                   transition-colors">
-                        Remove
-                      </button>
+                    <td className="px-4 py-4 text-stone-600">
+                      {app.message ? (
+                        <p className="max-w-sm whitespace-pre-wrap">{app.message}</p>
+                      ) : (
+                        <span className="text-stone-400">No message provided</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-4">
+                      {app.status === 'PENDING' ? (
+                        <div className="flex flex-col gap-2">
+                          <button
+                            onClick={() => handleAction(app.id, 'APPROVED')}
+                            disabled={activeActionId === app.id}
+                            className="rounded-lg bg-teal-500 px-3 py-2 text-white hover:bg-teal-600 disabled:opacity-50"
+                          >
+                            {activeActionId === app.id ? 'Saving...' : 'Approve'}
+                          </button>
+                          <button
+                            onClick={() => handleAction(app.id, 'DENIED')}
+                            disabled={activeActionId === app.id}
+                            className="rounded-lg bg-red-500 px-3 py-2 text-white hover:bg-red-600 disabled:opacity-50"
+                          >
+                            {activeActionId === app.id ? 'Saving...' : 'Reject'}
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-stone-400">Decision recorded</span>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -351,107 +174,36 @@ export default function AdminDashboard() {
           )}
         </div>
       )}
-
-      {/* Applications table */}
-      {activeTab === 'applications' && (
-        <>
-          {/* New: Filter buttons */}
-          <div className="flex gap-2 mb-4">
-            {[
-              ['all', 'All'],
-              ['PENDING', 'Pending'],
-              ['APPROVED', 'Approved'],
-              ['DENIED', 'Denied']
-            ].map(([key, label]) => (
-              <button key={key} onClick={() => setAppFilter(key)}
-                className={`px-4 py-2 rounded-xl text-sm font-medium
-                            transition-colors
-                            ${appFilter === key
-                              ? 'bg-teal-500 text-white'
-                              : 'bg-stone-100 text-stone-600'}`}>
-                {label}
-              </button>
-            ))}
-          </div>
-
-          <div className="bg-white rounded-2xl border border-stone-100
-                          overflow-hidden">
-            {filteredApps.length === 0 ? (
-              <p className="p-8 text-center text-stone-400 text-sm">
-                No applications match the filter.
-              </p>
-            ) : (
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-stone-100 text-left">
-                    <th className="px-4 py-3 font-medium text-stone-500">
-                      Applicant
-                    </th>
-                    <th className="px-4 py-3 font-medium text-stone-500">Pet</th>
-                    <th className="px-4 py-3 font-medium text-stone-500">
-                      Status
-                    </th>
-                    <th className="px-4 py-3 font-medium text-stone-500">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredApps.map(app => (
-                    <tr key={app.id}
-                      className="border-b border-stone-50
-                                 hover:bg-stone-50 transition-colors">
-                      <td className="px-4 py-3 font-medium text-stone-700">
-                        {app.user?.username}
-                      </td>
-                      <td className="px-4 py-3 text-stone-500">
-                        {app.pet?.name}
-                      </td>
-                      <td className="px-4 py-3">
-                        <StatusBadge status={app.status} />
-                      </td>
-                      <td className="px-4 py-3">
-                        {app.status === 'PENDING' && (
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() =>
-                                handleAppStatus(app.id, 'APPROVED')}
-                              className="text-xs px-3 py-1 bg-teal-50
-                                         text-teal-700 rounded-lg
-                                         hover:bg-teal-100 transition-colors">
-                              Approve
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleAppStatus(app.id, 'DENIED')}
-                              className="text-xs px-3 py-1 bg-red-50
-                                         text-red-600 rounded-lg
-                                         hover:bg-red-100 transition-colors">
-                              Deny
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </>
-      )}
     </div>
   )
 }
 
-function AdminField({ label, type = 'text', value, onChange, required }) {
+function SummaryCard({ label, value, tone }) {
+  const tones = {
+    stone: 'border-stone-200 bg-stone-50 text-stone-700',
+    amber: 'border-amber-100 bg-amber-50 text-amber-800',
+    teal: 'border-teal-100 bg-teal-50 text-teal-700',
+    red: 'border-red-100 bg-red-50 text-red-700',
+  }
+
   return (
-    <div>
-      <label className="block text-xs text-stone-500 mb-1">{label}</label>
-      <input type={type} value={value} required={required}
-        onChange={e => onChange(e.target.value)}
-        className="w-full text-sm border border-stone-200 rounded-lg px-3
-                   py-2 focus:outline-none focus:ring-2 focus:ring-teal-300" />
+    <div className={`rounded-2xl border px-5 py-4 ${tones[tone] || tones.stone}`}>
+      <p className="text-xs font-semibold uppercase tracking-wide">{label}</p>
+      <p className="mt-2 text-3xl font-bold">{value}</p>
     </div>
+  )
+}
+
+function AppStatusBadge({ status }) {
+  const styles = {
+    PENDING: 'border-amber-100 bg-amber-50 text-amber-700',
+    APPROVED: 'border-teal-100 bg-teal-50 text-teal-700',
+    DENIED: 'border-red-100 bg-red-50 text-red-700',
+  }
+
+  return (
+    <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${styles[status] || styles.PENDING}`}>
+      {status}
+    </span>
   )
 }

@@ -1,35 +1,53 @@
 import { useState } from 'react'
-import { useAuth } from '../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
+
+const DEMO_ADMIN_USERNAME = import.meta.env.VITE_ADMIN_USERNAME || 'admin'
+const DEMO_ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'PetConnectAdmin2026!'
 
 export default function AdminLoginForm() {
-  const { login } = useAuth()
   const navigate = useNavigate()
+  const { login } = useAuth()
+
   const [credentials, setCredentials] = useState({ username: '', password: '' })
   const [error, setError] = useState('')
 
-  const handleChange = (e) => {
-    setCredentials({ ...credentials, [e.target.name]: e.target.value })
+  const handleChange = (event) => {
+    const { name, value } = event.target
+    setCredentials(prev => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    // Hardcoded for demo (replace with secure check)
-   if (credentials.username === 'admin' && credentials.password === 'password') {
-  // Simulate a token (replace with real API response)
-  const fakeToken = 'admin-token-123' // In production, get from API
-  const userInfo = { username: 'admin', role: 'ADMIN' } // Include role here
-  login(fakeToken, userInfo) // Call login with token and userInfo
-  navigate('/admin')
-} else {
-  setError('Invalid credentials')
-}
+  const handleSubmit = (event) => {
+    event.preventDefault()
+
+    const isValidAdmin =
+      credentials.username === DEMO_ADMIN_USERNAME &&
+      credentials.password === DEMO_ADMIN_PASSWORD
+
+    if (!isValidAdmin) {
+      setError('Invalid admin credentials')
+      return
+    }
+
+    login('admin-demo-token', {
+      username: DEMO_ADMIN_USERNAME,
+      role: 'ADMIN',
+      userId: 'admin-demo-user',
+    })
+
+    navigate('/admin')
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
       <form onSubmit={handleSubmit} className="w-full max-w-md rounded-[24px] border border-slate-200 bg-white p-8 shadow-lg">
-        <h1 className="mb-6 text-2xl font-bold text-slate-900 text-center">Admin Login</h1>
-        {error && <p className="mb-4 text-red-600 text-center">{error}</p>}
+        <h1 className="mb-2 text-center text-2xl font-bold text-slate-900">Admin Login</h1>
+        <p className="mb-6 text-center text-sm text-slate-500">
+          This route is role-protected in the app. For production security, wire this form to your backend auth service.
+        </p>
+
+        {error && <p className="mb-4 text-center text-red-600">{error}</p>}
+
         <div className="mb-4">
           <label className="block text-sm font-semibold text-slate-700">Username</label>
           <input
@@ -41,6 +59,7 @@ export default function AdminLoginForm() {
             className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-500"
           />
         </div>
+
         <div className="mb-6">
           <label className="block text-sm font-semibold text-slate-700">Password</label>
           <input
@@ -52,6 +71,7 @@ export default function AdminLoginForm() {
             className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-500"
           />
         </div>
+
         <button
           type="submit"
           className="w-full rounded-full bg-sky-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-sky-700"
@@ -60,3 +80,5 @@ export default function AdminLoginForm() {
         </button>
       </form>
     </div>
+  )
+}
