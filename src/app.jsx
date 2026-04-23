@@ -18,6 +18,18 @@ import AdoptionApplicationForm from './components/AdoptionApplicationForm'
 
 export default function App() {
   return (
+    function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <Navbar /> {/* Add this at the top */}
+        <Routes>
+          {/* Your routes here */}
+        </Routes>
+      </Router>
+    </AuthProvider>
+  )
+}
     <AuthProvider>
       <div className="min-h-screen bg-stone-50">
         <Navbar />
@@ -59,7 +71,7 @@ export default function App() {
         </Routes>
       </div>
     </AuthProvider>
-  )
+    )
 }
 
 

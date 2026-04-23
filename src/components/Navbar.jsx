@@ -38,7 +38,19 @@ export default function Navbar() {
         </div>
 
         {/* Auth buttons */}
+        
         <div className="flex items-center gap-3">
+          {/* Auth buttons */}
+<div className="flex items-center gap-3">
+  {/* Add this: Admin Login link (visible to everyone, or conditionally) */}
+  <Link to="/admin-login"
+    className="text-sm text-stone-500 hover:text-stone-700">
+    Admin Login
+  </Link>
+  
+  {isLoggedIn ? (
+  ) : 
+}</div>
           {isLoggedIn ? (
             <>
               <Link to="/my-applications"

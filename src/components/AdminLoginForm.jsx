@@ -15,13 +15,15 @@ export default function AdminLoginForm() {
   const handleSubmit = (e) => {
     e.preventDefault()
     // Hardcoded for demo (replace with secure check)
-    if (credentials.username === 'admin' && credentials.password === 'password') {
-      login({ username: 'admin', role: 'ADMIN' }) // Simulate login with admin role
-      navigate('/admin')
-    } else {
-      setError('Invalid credentials')
-    }
-  }
+   if (credentials.username === 'admin' && credentials.password === 'password') {
+  // Simulate a token (replace with real API response)
+  const fakeToken = 'admin-token-123' // In production, get from API
+  const userInfo = { username: 'admin', role: 'ADMIN' } // Include role here
+  login(fakeToken, userInfo) // Call login with token and userInfo
+  navigate('/admin')
+} else {
+  setError('Invalid credentials')
+}
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
@@ -58,5 +60,3 @@ export default function AdminLoginForm() {
         </button>
       </form>
     </div>
-  )
-}
