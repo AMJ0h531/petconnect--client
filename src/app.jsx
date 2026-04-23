@@ -12,6 +12,8 @@ import MatchQuizPage from './pages/MatchQuizPage'
 import LoginPage from './pages/LoginPage'
 import MyApplicationsPage from './pages/MyApplicationsPage'
 import AdminDashboard from './pages/AdminDashboard'
+import PetProfile from './pages/PetProfile'
+import AdoptionApplicationForm from './components/AdoptionApplicationForm'
 
 export default function App() {
   return (
@@ -25,6 +27,14 @@ export default function App() {
           <Route path="/dogs" element={<BrowseDogsPage />} />
           <Route path="/cats" element={<BrowseCatsPage />} />
           <Route path="/pets/:id" element={<PetDetailPage />} />
+          <Route path="/match" element={<MatchQuizPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/" element={<HomePage />} />
+          <Route path="/dogs" element={<BrowseDogsPage />} />
+          <Route path="/cats" element={<BrowseCatsPage />} />
+          // Add these new routes here:
+          <Route path="/pets/:id" element={<PetProfile />} />
+          <Route path="/pets/:id/apply" element={<AdoptionApplicationForm />} />
           <Route path="/match" element={<MatchQuizPage />} />
           <Route path="/login" element={<LoginPage />} />
 
