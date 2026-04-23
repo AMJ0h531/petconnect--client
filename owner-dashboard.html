@@ -82,6 +82,15 @@
     .denial-reason { background:rgba(0,0,0,.06); border-radius:10px; padding:12px 14px; margin-top:12px; font-size:.86rem; font-style:italic; }
     .btn-care { display:inline-block; margin-top:16px; background:var(--green); color:#fff; padding:11px 26px; border-radius:99px; font-size:.9rem; font-weight:700; text-decoration:none; transition:background .2s; }
     .btn-care:hover { background:#047857; }
+
+    /* Care reminder card shown inside approved banner */
+    .care-detail-card { background:rgba(255,255,255,.7); border:1.5px solid rgba(5,150,105,.2); border-radius:14px; padding:18px 20px; margin-top:18px; text-align:left; }
+    .care-detail-card h4 { font-family:'Playfair Display',serif; font-size:1rem; font-weight:700; color:#065f46; margin-bottom:12px; }
+    .care-detail-row { display:flex; flex-direction:column; gap:2px; margin-bottom:10px; font-size:.86rem; }
+    .care-detail-row:last-child { margin-bottom:0; }
+    .care-detail-row strong { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.7px; color:#047857; }
+    .care-detail-row span { color:#064e3b; line-height:1.5; }
+    .care-pending-note { background:rgba(255,255,255,.6); border:1.5px dashed rgba(5,150,105,.3); border-radius:12px; padding:14px 16px; margin-top:16px; font-size:.84rem; color:#047857; text-align:center; }
     .btn-browse { display:inline-block; margin-top:14px; background:transparent; color:#dc2626; border:2px solid rgba(220,38,38,.4); padding:10px 26px; border-radius:99px; font-size:.9rem; font-weight:700; text-decoration:none; transition:background .2s,color .2s; }
     .btn-browse:hover { background:#fee2e2; }
 
@@ -149,9 +158,11 @@
 
 <script>
   const APPS_KEY = 'petconnect.applications';
+  const CARE_KEY = 'petconnect.care.reminders';
   let _confettiLaunched = false;
 
   function getApps() { return JSON.parse(localStorage.getItem(APPS_KEY) || '[]'); }
+  function getCareReminders() { return JSON.parse(localStorage.getItem(CARE_KEY) || '{}'); }
 
   function checkStatus(event) {
     event.preventDefault();
@@ -185,12 +196,31 @@
       let bannerHtml = '';
 
       if (app.status === 'approved') {
+        const reminders = getCareReminders();
+        const reminder  = reminders[(app.applicantEmail || '').toLowerCase()];
+        let careHtml = '';
+        if (reminder) {
+          const rows = [
+            { label:'Feeding Schedule', val: reminder.feeding },
+            { label:'Medications / Special Needs', val: reminder.meds },
+            { label:'Vet Contact', val: reminder.vet },
+            { label:'Additional Notes', val: reminder.notes },
+          ].filter(r => r.val);
+          careHtml = `
+            <div class="care-detail-card">
+              <h4>📋 Care Instructions from the Adoption Center</h4>
+              ${rows.map(r => `<div class="care-detail-row"><strong>${escHtml(r.label)}</strong><span>${escHtml(r.val)}</span></div>`).join('')}
+              ${!rows.length ? '<p style="font-size:.85rem;color:#047857;">Care details will appear here once the admin completes the form.</p>' : ''}
+            </div>`;
+        } else {
+          careHtml = `<div class="care-pending-note">⏳ The adoption center is preparing your care instructions — check back soon!</div>`;
+        }
         bannerHtml = `
           <div class="status-banner approved">
             <span class="status-banner-icon">🎉</span>
             <h3>Congratulations — You've been approved!</h3>
-            <p>Your application for <strong>${escHtml(app.petName)}</strong> has been approved by the admin. Welcome to the PetConnect+ family!</p>
-            <a href="admin-dashboard.html" class="btn-care">📋 Go to Care Reminders</a>
+            <p>Your application for <strong>${escHtml(app.petName)}</strong> has been approved. Welcome to the PetConnect+ family!</p>
+            ${careHtml}
           </div>`;
         // Launch confetti once for the first approved app
         if (!_confettiLaunched) {
