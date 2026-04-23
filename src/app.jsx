@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './AuthContext'
 import Navbar from './components/Navbar'
 import ProtectedRoute from './components/ProtectedRoute'
+import AdminLoginForm from './components/AdminLoginForm'
 
 // Pages
 import HomePage from './pages/HomePage'
@@ -37,6 +38,7 @@ export default function App() {
           <Route path="/pets/:id/apply" element={<AdoptionApplicationForm />} />
           <Route path="/match" element={<MatchQuizPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/admin-login" element={<AdminLoginForm />} />
 
           {/* ── Protected routes — must be logged in ─────────────────── */}
           <Route path="/my-applications" element={

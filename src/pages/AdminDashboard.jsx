@@ -1,4 +1,3 @@
-// src/pages/AdminDashboard.jsx
 import { useState, useEffect } from 'react'
 import dogService          from '../services/dogService'
 import catService          from '../services/catService'
@@ -23,16 +22,18 @@ export default function AdminDashboard() {
   const [saving,  setSaving]  = useState(false)
   const [saveMsg, setSaveMsg] = useState(null)
 
+  // New: Filter for applications
+  const [appFilter, setAppFilter] = useState('all') // 'all', 'PENDING', 'APPROVED', 'DENIED'
+
   useEffect(() => {
     loadAll()
-  }, [])
+    if (activeTab === 'applications') loadApplications() // Load apps when tab is active
+  }, [activeTab])
 
   const loadAll = async () => {
     setLoading(true)
     try {
       const [dogsRes, catsRes] = await Promise.all([
-        // WHY Promise.all: fires both requests simultaneously
-        // instead of waiting for one to finish before starting the other
         dogService.getAll({}, 0, 50),
         catService.getAll({}, 0, 50),
       ])
@@ -45,6 +46,15 @@ export default function AdminDashboard() {
     }
   }
 
+  const loadApplications = async () => {
+    try {
+      const appsRes = await applicationService.getAll() // Assuming this fetches applications
+      setApps(appsRes.data || [])
+    } catch (e) {
+      console.error('Failed to load applications', e)
+    }
+  }
+
   // ── Update application status ─────────────────────────────────────────
   const handleAppStatus = async (appId, newStatus) => {
     try {
@@ -52,6 +62,14 @@ export default function AdminDashboard() {
       setApps(prev => prev.map(a =>
         a.id === appId ? { ...a, status: newStatus } : a
       ))
+      // New: Simulate email sending
+      const app = apps.find(a => a.id === appId)
+      const subject = newStatus === 'APPROVED' ? 'Adoption Approved!' : 'Adoption Denied'
+      const message = newStatus === 'APPROVED'
+        ? `Congratulations! Your application for ${app.pet?.name} has been approved. Contact the shelter to proceed.`
+        : `We're sorry, but your application for ${app.pet?.name} has been denied. Thank you for your interest.`
+      console.log(`Email sent to ${app.user?.email || 'applicant'}: ${subject} - ${message}`)
+      alert(`Email simulated: ${subject} sent to applicant.`)
     } catch (e) {
       alert('Could not update status')
     }
@@ -108,6 +126,11 @@ export default function AdminDashboard() {
     ...dogs.map(d => ({ ...d, _type: 'dog' })),
     ...cats.map(c => ({ ...c, _type: 'cat' })),
   ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+
+  // New: Filter applications
+  const filteredApps = apps.filter(app =>
+    appFilter === 'all' || app.status === appFilter
+  )
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-10">
@@ -331,70 +354,91 @@ export default function AdminDashboard() {
 
       {/* Applications table */}
       {activeTab === 'applications' && (
-        <div className="bg-white rounded-2xl border border-stone-100
-                        overflow-hidden">
-          {apps.length === 0 ? (
-            <p className="p-8 text-center text-stone-400 text-sm">
-              No applications yet.
-            </p>
-          ) : (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-stone-100 text-left">
-                  <th className="px-4 py-3 font-medium text-stone-500">
-                    Applicant
-                  </th>
-                  <th className="px-4 py-3 font-medium text-stone-500">Pet</th>
-                  <th className="px-4 py-3 font-medium text-stone-500">
-                    Status
-                  </th>
-                  <th className="px-4 py-3 font-medium text-stone-500">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {apps.map(app => (
-                  <tr key={app.id}
-                    className="border-b border-stone-50
-                               hover:bg-stone-50 transition-colors">
-                    <td className="px-4 py-3 font-medium text-stone-700">
-                      {app.user?.username}
-                    </td>
-                    <td className="px-4 py-3 text-stone-500">
-                      {app.pet?.name}
-                    </td>
-                    <td className="px-4 py-3">
-                      <StatusBadge status={app.status} />
-                    </td>
-                    <td className="px-4 py-3">
-                      {app.status === 'PENDING' && (
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() =>
-                              handleAppStatus(app.id, 'APPROVED')}
-                            className="text-xs px-3 py-1 bg-teal-50
-                                       text-teal-700 rounded-lg
-                                       hover:bg-teal-100 transition-colors">
-                            Approve
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleAppStatus(app.id, 'DENIED')}
-                            className="text-xs px-3 py-1 bg-red-50
-                                       text-red-600 rounded-lg
-                                       hover:bg-red-100 transition-colors">
-                            Deny
-                          </button>
-                        </div>
-                      )}
-                    </td>
+        <>
+          {/* New: Filter buttons */}
+          <div className="flex gap-2 mb-4">
+            {[
+              ['all', 'All'],
+              ['PENDING', 'Pending'],
+              ['APPROVED', 'Approved'],
+              ['DENIED', 'Denied']
+            ].map(([key, label]) => (
+              <button key={key} onClick={() => setAppFilter(key)}
+                className={`px-4 py-2 rounded-xl text-sm font-medium
+                            transition-colors
+                            ${appFilter === key
+                              ? 'bg-teal-500 text-white'
+                              : 'bg-stone-100 text-stone-600'}`}>
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <div className="bg-white rounded-2xl border border-stone-100
+                          overflow-hidden">
+            {filteredApps.length === 0 ? (
+              <p className="p-8 text-center text-stone-400 text-sm">
+                No applications match the filter.
+              </p>
+            ) : (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-stone-100 text-left">
+                    <th className="px-4 py-3 font-medium text-stone-500">
+                      Applicant
+                    </th>
+                    <th className="px-4 py-3 font-medium text-stone-500">Pet</th>
+                    <th className="px-4 py-3 font-medium text-stone-500">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 font-medium text-stone-500">
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+                </thead>
+                <tbody>
+                  {filteredApps.map(app => (
+                    <tr key={app.id}
+                      className="border-b border-stone-50
+                                 hover:bg-stone-50 transition-colors">
+                      <td className="px-4 py-3 font-medium text-stone-700">
+                        {app.user?.username}
+                      </td>
+                      <td className="px-4 py-3 text-stone-500">
+                        {app.pet?.name}
+                      </td>
+                      <td className="px-4 py-3">
+                        <StatusBadge status={app.status} />
+                      </td>
+                      <td className="px-4 py-3">
+                        {app.status === 'PENDING' && (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() =>
+                                handleAppStatus(app.id, 'APPROVED')}
+                              className="text-xs px-3 py-1 bg-teal-50
+                                         text-teal-700 rounded-lg
+                                         hover:bg-teal-100 transition-colors">
+                              Approve
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleAppStatus(app.id, 'DENIED')}
+                              className="text-xs px-3 py-1 bg-red-50
+                                         text-red-600 rounded-lg
+                                         hover:bg-red-100 transition-colors">
+                              Deny
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </>
       )}
     </div>
   )
