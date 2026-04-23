@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard — PetConnect+</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --sky-50:#f0f9ff; --sky-100:#e0f2fe; --sky-200:#bae6fd;
+      --sky-400:#38bdf8; --sky-500:#0ea5e9; --sky-600:#0284c7;
+      --sky-700:#0369a1; --sky-900:#0c4a6e;
+      --text:#0c2d45; --text-soft:#4a7fa0;
+      --border:#bae6fd; --surface:#ffffff; --surface-soft:#f0f9ff;
+      --green:#059669; --green-light:#d1fae5;
+      --shadow:0 4px 24px rgba(14,165,233,.10);
+    }
+    html { scroll-behavior:smooth; }
+    body { font-family:'DM Sans',sans-serif; background:var(--sky-50); color:var(--text); min-height:100vh; }
+
+    nav {
+      position:sticky; top:0; z-index:200;
+      background:rgba(240,249,255,.96); backdrop-filter:blur(10px);
+      border-bottom:1.5px solid var(--sky-200);
+      padding:0 48px; display:flex; align-items:center; justify-content:space-between; height:68px;
+    }
+    .nav-logo { font-family:'Playfair Display',serif; font-size:1.45rem; font-weight:900; color:var(--sky-700); letter-spacing:-.5px; text-decoration:none; display:flex; align-items:center; gap:6px; }
+    .nav-logo .plus { background:var(--sky-500); color:#fff; font-size:.82rem; font-family:'DM Sans',sans-serif; font-weight:800; padding:2px 8px; border-radius:7px; }
+    .nav-links { display:flex; gap:6px; list-style:none; }
+    .nav-links a { text-decoration:none; font-size:.9rem; font-weight:500; color:var(--text-soft); padding:7px 18px; border-radius:99px; transition:background .2s,color .2s; }
+    .nav-links a:hover { background:var(--sky-100); color:var(--sky-700); }
+    .nav-links a.active { background:var(--sky-500); color:#fff; }
+
+    .page-wrap { max-width:1100px; margin:0 auto; padding:40px 48px 80px; }
+
+    .page-header { margin-bottom:32px; }
+    .page-header h1 { font-family:'Playfair Display',serif; font-size:2.2rem; font-weight:900; color:var(--sky-900); margin-bottom:6px; }
+    .page-header p { color:var(--text-soft); font-size:.95rem; }
+
+    .summary-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:32px; }
+    .summary-card { background:var(--surface); border:1.5px solid var(--sky-200); border-radius:18px; padding:20px 22px; box-shadow:var(--shadow); }
+    .summary-card .label { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.8px; margin-bottom:8px; }
+    .summary-card .value { font-family:'Playfair Display',serif; font-size:2rem; font-weight:900; }
+    .summary-card.total  .label { color:var(--sky-700); }  .summary-card.total  .value { color:var(--sky-700); }
+    .summary-card.pending .label { color:#92400e; }         .summary-card.pending .value { color:#92400e; }
+    .summary-card.approved .label { color:var(--green); }  .summary-card.approved .value { color:var(--green); }
+    .summary-card.denied .label { color:#dc2626; }          .summary-card.denied .value { color:#dc2626; }
+
+    .filter-bar { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
+    .filter-btn { padding:7px 18px; border-radius:99px; border:1.5px solid var(--sky-200); background:var(--surface); color:var(--text-soft); font-size:.85rem; font-weight:600; cursor:pointer; transition:background .2s,border-color .2s,color .2s; }
+    .filter-btn:hover { background:var(--sky-100); border-color:var(--sky-400); color:var(--sky-700); }
+    .filter-btn.active { background:var(--sky-500); border-color:var(--sky-500); color:#fff; }
+
+    .apps-table { background:var(--surface); border:1.5px solid var(--sky-200); border-radius:20px; overflow:hidden; box-shadow:var(--shadow); }
+    .apps-table table { width:100%; border-collapse:collapse; font-size:.9rem; }
+    .apps-table thead { background:var(--sky-50); }
+    .apps-table th { padding:13px 16px; text-align:left; font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--sky-700); border-bottom:1.5px solid var(--sky-200); }
+    .apps-table td { padding:14px 16px; border-bottom:1.5px solid var(--sky-100); vertical-align:middle; }
+    .apps-table tr:last-child td { border-bottom:none; }
+    .apps-table tr:hover td { background:var(--sky-50); }
+
+    .pet-name { font-weight:700; color:var(--sky-900); }
+    .date-cell { color:var(--text-soft); font-size:.85rem; }
+
+    .status-badge { display:inline-flex; align-items:center; gap:5px; font-size:.72rem; font-weight:700; letter-spacing:.8px; text-transform:uppercase; padding:4px 12px; border-radius:99px; border:1.5px solid transparent; }
+    .status-badge.pending  { background:#fef3c7; color:#92400e; border-color:rgba(146,64,14,.2); }
+    .status-badge.approved { background:var(--green-light); color:var(--green); border-color:rgba(5,150,105,.2); }
+    .status-badge.denied   { background:#fee2e2; color:#dc2626; border-color:rgba(220,38,38,.2); }
+
+    .action-cell { display:flex; gap:8px; }
+    .btn-approve { background:var(--green); color:#fff; border:none; padding:7px 16px; border-radius:99px; font-size:.82rem; font-weight:700; cursor:pointer; transition:background .2s; }
+    .btn-approve:hover { background:#047857; }
+    .btn-deny    { background:#dc2626; color:#fff; border:none; padding:7px 16px; border-radius:99px; font-size:.82rem; font-weight:700; cursor:pointer; transition:background .2s; }
+    .btn-deny:hover    { background:#b91c1c; }
+    .btn-approve:disabled,.btn-deny:disabled { opacity:.45; cursor:default; }
+
+    .empty-state { padding:64px 24px; text-align:center; color:var(--text-soft); font-size:.95rem; }
+    .empty-state p { margin-bottom:16px; }
+    .empty-state a { color:var(--sky-600); font-weight:600; text-decoration:none; }
+    .empty-state a:hover { text-decoration:underline; }
+
+    .toast-container { position:fixed; bottom:28px; right:28px; z-index:9999; display:flex; flex-direction:column; gap:10px; pointer-events:none; }
+    .toast { background:var(--sky-900); color:#fff; padding:14px 22px; border-radius:14px; font-size:.9rem; font-weight:500; box-shadow:0 8px 28px rgba(12,45,69,.35); transform:translateX(120%); transition:transform .4s cubic-bezier(.34,1.56,.64,1); pointer-events:auto; max-width:320px; }
+    .toast.show { transform:translateX(0); }
+    .toast.success { background:#065f46; }
+    .toast.deny    { background:#7f1d1d; }
+
+    .refresh-btn { background:transparent; border:1.5px solid var(--sky-200); color:var(--text-soft); padding:8px 18px; border-radius:99px; font-size:.85rem; font-weight:600; cursor:pointer; transition:background .2s,border-color .2s; }
+    .refresh-btn:hover { background:var(--sky-100); border-color:var(--sky-400); }
+
+    @media(max-width:900px) {
+      nav { padding:0 20px; }
+      .page-wrap { padding:28px 20px 60px; }
+      .summary-grid { grid-template-columns:repeat(2,1fr); }
+    }
+    @media(max-width:600px) {
+      .summary-grid { grid-template-columns:1fr 1fr; gap:12px; }
+      .apps-table { overflow-x:auto; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<nav>
+  <a href="/index.html" class="nav-logo">PetConnect<span class="plus">+</span></a>
+  <ul class="nav-links">
+    <li><a href="/index.html#dogs">Dogs</a></li>
+    <li><a href="/index.html#cats">Cats</a></li>
+    <li><a href="match-quiz.html">Match Quiz</a></li>
+    <li><a href="/index.html#reminders">Care Reminders</a></li>
+    <li><a href="admin-dashboard.html" class="active">Admin</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrap">
+  <div class="page-header">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+      <div>
+        <h1>Admin Dashboard</h1>
+        <p>Review adoption applications and approve or deny each request.</p>
+      </div>
+      <button class="refresh-btn" onclick="renderDashboard()">↻ Refresh</button>
+    </div>
+  </div>
+
+  <!-- SUMMARY CARDS -->
+  <div class="summary-grid" id="summaryGrid"></div>
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar" id="filterBar">
+    <button class="filter-btn active" data-filter="all"      onclick="setFilter('all')">All</button>
+    <button class="filter-btn"        data-filter="pending"  onclick="setFilter('pending')">Pending</button>
+    <button class="filter-btn"        data-filter="approved" onclick="setFilter('approved')">Approved</button>
+    <button class="filter-btn"        data-filter="denied"   onclick="setFilter('denied')">Denied</button>
+  </div>
+
+  <!-- APPLICATIONS TABLE -->
+  <div class="apps-table" id="appsTable"></div>
+</div>
+
+<script>
+  const APPS_KEY    = 'petconnect.applications';
+  const STATUS_KEY  = 'petconnect.pet.statuses';
+  let   currentFilter = 'all';
+
+  function getApps()     { return JSON.parse(localStorage.getItem(APPS_KEY)   || '[]'); }
+  function getStatuses() { return JSON.parse(localStorage.getItem(STATUS_KEY) || '{}'); }
+  function saveApps(apps)         { localStorage.setItem(APPS_KEY,   JSON.stringify(apps)); }
+  function saveStatuses(statuses) { localStorage.setItem(STATUS_KEY, JSON.stringify(statuses)); }
+
+  function setFilter(filter) {
+    currentFilter = filter;
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.filter === filter);
+    });
+    renderTable();
+  }
+
+  function approve(appId) {
+    const apps = getApps();
+    const app  = apps.find(a => a.id === appId);
+    if (!app) return;
+    // Approve this application
+    app.status = 'approved';
+    app.reviewedAt = new Date().toISOString();
+    // Deny any other pending applications for the same pet
+    apps.forEach(a => {
+      if (a.petId === app.petId && a.id !== appId && a.status === 'pending') {
+        a.status = 'denied';
+        a.reviewedAt = new Date().toISOString();
+      }
+    });
+    saveApps(apps);
+    // Mark pet as adopted
+    const statuses = getStatuses();
+    statuses[app.petId] = 'adopted';
+    saveStatuses(statuses);
+    showToast(`✅ Approved! ${app.petName} is now marked as Adopted.`, 'success');
+    renderDashboard();
+  }
+
+  function deny(appId) {
+    const apps = getApps();
+    const app  = apps.find(a => a.id === appId);
+    if (!app) return;
+    app.status = 'denied';
+    app.reviewedAt = new Date().toISOString();
+    saveApps(apps);
+    // Only revert pet to available if no other pending/approved apps exist for it
+    const otherActive = apps.some(a => a.id !== appId && a.petId === app.petId && ['pending','approved'].includes(a.status));
+    const statuses = getStatuses();
+    statuses[app.petId] = otherActive ? 'pending' : 'available';
+    saveStatuses(statuses);
+    showToast(`Application for ${app.petName} denied.`, 'deny');
+    renderDashboard();
+  }
+
+  function renderSummary(apps) {
+    const counts = {
+      total:    apps.length,
+      pending:  apps.filter(a => a.status === 'pending').length,
+      approved: apps.filter(a => a.status === 'approved').length,
+      denied:   apps.filter(a => a.status === 'denied').length,
+    };
+    document.getElementById('summaryGrid').innerHTML = `
+      <div class="summary-card total">
+        <div class="label">Total Applications</div>
+        <div class="value">${counts.total}</div>
+      </div>
+      <div class="summary-card pending">
+        <div class="label">Pending Review</div>
+        <div class="value">${counts.pending}</div>
+      </div>
+      <div class="summary-card approved">
+        <div class="label">Approved</div>
+        <div class="value">${counts.approved}</div>
+      </div>
+      <div class="summary-card denied">
+        <div class="label">Denied</div>
+        <div class="value">${counts.denied}</div>
+      </div>
+    `;
+  }
+
+  function renderTable() {
+    const apps     = getApps();
+    const filtered = currentFilter === 'all' ? apps : apps.filter(a => a.status === currentFilter);
+    const tableEl  = document.getElementById('appsTable');
+
+    if (filtered.length === 0) {
+      tableEl.innerHTML = `
+        <div class="empty-state">
+          <p>${apps.length === 0
+            ? 'No applications yet. Applications appear here when visitors click <strong>Apply</strong> on a pet card.'
+            : 'No applications match this filter.'
+          }</p>
+          ${apps.length === 0 ? `<a href="/index.html">← Go to Pet Listings</a>` : ''}
+        </div>`;
+      return;
+    }
+
+    const rows = filtered.map(app => {
+      const date    = new Date(app.createdAt).toLocaleString();
+      const reviewed = app.reviewedAt ? new Date(app.reviewedAt).toLocaleString() : '—';
+      const isPending = app.status === 'pending';
+      return `
+        <tr>
+          <td><span class="pet-name">${escHtml(app.petName)}</span></td>
+          <td class="date-cell">${date}</td>
+          <td><span class="status-badge ${app.status}">${app.status.charAt(0).toUpperCase() + app.status.slice(1)}</span></td>
+          <td class="date-cell">${reviewed}</td>
+          <td>
+            ${isPending ? `
+              <div class="action-cell">
+                <button class="btn-approve" onclick="approve('${app.id}')">Approve</button>
+                <button class="btn-deny"    onclick="deny('${app.id}')">Deny</button>
+              </div>` : '<span style="color:var(--text-soft);font-size:.85rem;">Decision recorded</span>'}
+          </td>
+        </tr>`;
+    }).join('');
+
+    tableEl.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Pet</th>
+            <th>Applied</th>
+            <th>Status</th>
+            <th>Reviewed</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
+  function renderDashboard() {
+    const apps = getApps();
+    renderSummary(apps);
+    renderTable();
+  }
+
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function showToast(msg, type = 'info') {
+    const c = document.getElementById('toastContainer');
+    const t = document.createElement('div');
+    t.className = `toast ${type}`;
+    t.textContent = msg;
+    c.appendChild(t);
+    requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('show')));
+    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 500); }, 4000);
+  }
+
+  renderDashboard();
+</script>
+</body>
+</html>
