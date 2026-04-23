@@ -73,7 +73,7 @@ export default function AdminDashboard() {
         <SummaryCard label="Total requests" value={counts.total} tone="stone" />
         <SummaryCard label="Pending review" value={counts.pending} tone="amber" />
         <SummaryCard label="Approved" value={counts.approved} tone="teal" />
-        <SummaryCard label="Rejected" value={counts.denied} tone="red" />
+        <SummaryCard label="Denied" value={counts.denied} tone="red" />
       </div>
 
       <div className="mb-4 flex flex-wrap gap-2">

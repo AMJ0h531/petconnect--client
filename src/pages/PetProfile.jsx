@@ -158,14 +158,10 @@ export default function PetProfile() {
                 Apply to adopt {pet.name}
               </h2>
               <p className="mb-4 text-sm text-stone-500">
-                The adopt button now sends an application to the admin for review before the adoption is finalized.
+                Submit an application and we'll notify you once the admin reviews it.
               </p>
 
-              {submitted ? (
-                <div className="rounded-xl border border-teal-100 bg-teal-50 p-4 text-sm text-teal-700">
-                  Your application has been submitted. This pet is now pending admin review.
-                </div>
-              ) : !isLoggedIn ? (
+              {!isLoggedIn ? (
                 <div className="py-2 text-center">
                   <p className="mb-4 text-sm text-stone-500">You need an account to apply.</p>
                   <button
@@ -185,7 +181,7 @@ export default function PetProfile() {
                   }}
                   className="w-full rounded-xl bg-teal-500 py-3 font-semibold text-white hover:bg-teal-600"
                 >
-                  Adopt {pet.name}
+                  Apply
                 </button>
               ) : (
                 <form onSubmit={handleApply} className="space-y-4">
@@ -224,15 +220,36 @@ export default function PetProfile() {
           )}
 
           {isPetPending && (
-            <div className="rounded-2xl border border-amber-100 bg-amber-50 p-6 text-center">
-              <p className="mb-2 font-medium text-amber-800">{pet.name} already has an adoption request under review.</p>
-              <p className="mb-4 text-sm text-amber-700">
-                While the application is pending, the adopt button is locked so nobody else can adopt this pet at the same time.
-              </p>
-              <Link to={browsePath} className="text-sm text-amber-700 underline">
-                Browse more {browseLabel}
-              </Link>
-            </div>
+            submitted ? (
+              <div className="rounded-2xl border border-teal-100 bg-teal-50 p-6">
+                <h2 className="font-display text-xl font-semibold text-teal-800 mb-3">
+                  Application submitted!
+                </h2>
+                <button
+                  type="button"
+                  disabled
+                  className="w-full rounded-xl bg-amber-400 py-3 font-semibold text-white cursor-not-allowed mb-3"
+                >
+                  Pending — awaiting admin review
+                </button>
+                <p className="text-sm text-teal-700 text-center">
+                  We'll review your application soon.{' '}
+                  <Link to="/my-applications" className="underline font-medium">
+                    Track it in My Applications.
+                  </Link>
+                </p>
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-amber-100 bg-amber-50 p-6 text-center">
+                <p className="mb-2 font-medium text-amber-800">{pet.name} already has an adoption request under review.</p>
+                <p className="mb-4 text-sm text-amber-700">
+                  While the application is pending, adoptions are paused so nobody else can apply at the same time.
+                </p>
+                <Link to={browsePath} className="text-sm text-amber-700 underline">
+                  Browse more {browseLabel}
+                </Link>
+              </div>
+            )
           )}
 
           {isPetAdopted && (

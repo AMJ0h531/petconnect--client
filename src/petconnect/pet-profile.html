@@ -92,6 +92,9 @@
     .btn-adopt-main { flex:1; background:var(--sky-500); color:#fff; border:none; cursor:pointer; padding:14px 0; border-radius:99px; font-size:1rem; font-weight:800; transition:background .2s,transform .15s,box-shadow .2s; text-align:center; text-decoration:none; box-shadow:0 4px 18px rgba(14,165,233,.35); }
     .btn-adopt-main:hover { background:var(--sky-600); transform:translateY(-2px); }
     .btn-adopt-main:disabled, .btn-adopt-main.adopted { background:#c4b5fd; cursor:default; box-shadow:none; transform:none; }
+    .btn-adopt-main.pending { background:#f59e0b; cursor:default; box-shadow:none; transform:none; }
+    .badge-pending { display:inline-flex; align-items:center; gap:5px; background:#fef3c7; color:#92400e; font-size:.72rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:5px 13px; border-radius:99px; border:1.5px solid rgba(146,64,14,.2); }
+    .badge-pending::before { content:''; width:7px; height:7px; background:#f59e0b; border-radius:50%; display:inline-block; animation:pulse 1.8s ease-in-out infinite; }
     .btn-contact { background:transparent; color:var(--sky-700); border:2px solid var(--sky-200); cursor:pointer; padding:13px 24px; border-radius:99px; font-size:.95rem; font-weight:700; transition:border-color .2s,background .2s; text-decoration:none; white-space:nowrap; }
     .btn-contact:hover { border-color:var(--sky-400); background:var(--sky-50); }
 
@@ -271,7 +274,7 @@
       <div class="profile-tags" id="profileTags"></div>
     </div>
     <div class="profile-actions">
-      <button class="btn-adopt-main" id="adoptBtn" onclick="handleAdopt()">❤️ Adopt Me</button>
+      <button class="btn-adopt-main" id="adoptBtn" onclick="handleAdopt()">Apply</button>
       <button class="btn-contact" onclick="openContactModal()">📬 Contact Shelter</button>
     </div>
   </div>
@@ -1023,13 +1026,11 @@ function handleAdopt() {
   const params = new URLSearchParams(window.location.search);
   const petId  = params.get('pet') || 'luna';
   const pet    = PETS[petId];
-  launchConfetti();
   const btn = document.getElementById('adoptBtn');
-  btn.textContent = '🏡 Adopted!'; btn.disabled = true; btn.classList.add('adopted');
+  btn.textContent = '⏳ Pending'; btn.disabled = true; btn.classList.add('pending');
   const badge = document.getElementById('statusBadge');
-  badge.className = 'badge-adopted'; badge.textContent = 'Adopted 🎉';
-  showToast(`Congratulations! You're adopting ${pet.name}! 🐾`, 'adopt', 5000);
-  setTimeout(() => showToast('Contact the shelter to complete your adoption paperwork.', 'info', 6000), 1200);
+  badge.className = 'badge-pending'; badge.textContent = 'Pending Review';
+  showToast(`Application submitted for ${pet.name}! Waiting for admin approval.`, 'info', 5000);
 }
 
 // ── Contact modal ─────────────────────────────────────────────────────────────
