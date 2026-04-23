@@ -136,24 +136,22 @@
     <span class="login-icon">🔐</span>
     <h2>Admin Sign In</h2>
     <p>This area is restricted to PetConnect+ administrators.</p>
-    <form onsubmit="handleLogin(event)" autocomplete="off">
-      <div class="login-field">
-        <label>Username</label>
-        <input type="text" id="loginUsername" placeholder="admin" autocomplete="off" spellcheck="false"/>
-      </div>
-      <div class="login-field">
-        <label>Password</label>
-        <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="off"/>
-      </div>
-      <div class="login-error" id="loginError">Incorrect username or password. Use the credentials shown below.</div>
-      <button type="submit" class="btn-login">Sign In</button>
-    </form>
-    <div style="margin-top:20px;background:var(--sky-50);border:1.5px solid var(--sky-200);border-radius:12px;padding:12px 16px;font-size:.82rem;color:var(--text-soft);text-align:left;line-height:1.8;">
-      <strong style="color:var(--sky-700);display:block;margin-bottom:4px;">Demo Credentials</strong>
-      Username: <code style="background:#e0f2fe;padding:1px 6px;border-radius:4px;color:var(--sky-900);font-size:.85rem;">admin</code><br/>
-      Password: <code style="background:#e0f2fe;padding:1px 6px;border-radius:4px;color:var(--sky-900);font-size:.85rem;">petconnect2026</code>
+    <div class="login-field">
+      <label>Username</label>
+      <input type="text" id="loginUsername" placeholder="admin" autocomplete="new-password" autocorrect="off" autocapitalize="none" spellcheck="false"/>
     </div>
-    <a href="index.html" style="display:inline-block;margin-top:16px;font-size:.85rem;font-weight:600;color:var(--text-soft);text-decoration:none;">← Return to PetConnect+</a>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="petconnect2026" autocomplete="new-password" autocorrect="off" autocapitalize="none"/>
+    </div>
+    <div class="login-error" id="loginError" style="display:none;">Incorrect credentials — check the hint below and try again.</div>
+    <button type="button" class="btn-login" id="loginBtn">Sign In</button>
+    <div style="margin-top:20px;background:var(--sky-50);border:1.5px solid var(--sky-200);border-radius:12px;padding:12px 16px;font-size:.82rem;color:var(--text-soft);text-align:left;line-height:2;">
+      <strong style="color:var(--sky-700);display:block;margin-bottom:2px;">Admin Credentials</strong>
+      Username: <code style="background:#e0f2fe;padding:2px 8px;border-radius:4px;color:var(--sky-900);font-weight:700;user-select:all;">admin</code><br/>
+      Password: <code style="background:#e0f2fe;padding:2px 8px;border-radius:4px;color:var(--sky-900);font-weight:700;user-select:all;">petconnect2026</code>
+    </div>
+    <a href="index.html" style="display:inline-block;margin-top:18px;font-size:.85rem;font-weight:600;color:var(--sky-600);text-decoration:none;">← Return to PetConnect+</a>
   </div>
 </div>
 
@@ -257,6 +255,46 @@
 </div>
 
 <script>
+  // ── ADMIN AUTH (runs first) ──────────────────────────────────────────────────
+  const ADMIN_AUTH_KEY = 'petconnect.admin.auth';
+
+  function isAuthenticated() {
+    return localStorage.getItem(ADMIN_AUTH_KEY) === '1';
+  }
+
+  function doLogin() {
+    const user = document.getElementById('loginUsername').value.trim();
+    const pass = document.getElementById('loginPassword').value.trim();
+    const errEl = document.getElementById('loginError');
+    if (user === 'admin' && pass === 'petconnect2026') {
+      localStorage.setItem(ADMIN_AUTH_KEY, '1');
+      document.getElementById('loginOverlay').style.display = 'none';
+      errEl.style.display = 'none';
+      renderDashboard();
+    } else {
+      errEl.style.display = 'block';
+      document.getElementById('loginPassword').value = '';
+      document.getElementById('loginPassword').focus();
+    }
+  }
+
+  // Wire up button and Enter key after DOM is ready
+  document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('loginBtn').addEventListener('click', doLogin);
+    document.getElementById('loginPassword').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') doLogin();
+    });
+    document.getElementById('loginUsername').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') document.getElementById('loginPassword').focus();
+    });
+    // Show or hide overlay based on stored auth
+    if (isAuthenticated()) {
+      document.getElementById('loginOverlay').style.display = 'none';
+    }
+    renderDashboard();
+  });
+
+  // ── DATA KEYS ────────────────────────────────────────────────────────────────
   const APPS_KEY   = 'petconnect.applications';
   const STATUS_KEY = 'petconnect.pet.statuses';
   let currentFilter = 'all';
@@ -457,34 +495,6 @@
     setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 500); }, 5000);
   }
 
-  // ── ADMIN AUTH ──
-  const ADMIN_SESSION_KEY = 'petconnect.admin.session';
-
-  function checkAuth() {
-    const session = sessionStorage.getItem(ADMIN_SESSION_KEY);
-    if (session === 'authenticated') {
-      document.getElementById('loginOverlay').style.display = 'none';
-    }
-    // overlay stays visible if not authenticated
-  }
-
-  function handleLogin(event) {
-    event.preventDefault();
-    const user = document.getElementById('loginUsername').value.trim();
-    const pass = document.getElementById('loginPassword').value;
-    const errEl = document.getElementById('loginError');
-    if (user === 'admin' && pass === 'petconnect2026') {
-      sessionStorage.setItem(ADMIN_SESSION_KEY, 'authenticated');
-      document.getElementById('loginOverlay').style.display = 'none';
-      errEl.classList.remove('show');
-      renderDashboard();
-    } else {
-      errEl.classList.add('show');
-    }
-  }
-
-  checkAuth();
-  renderDashboard();
 </script>
 </body>
 </html>
