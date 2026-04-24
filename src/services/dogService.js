@@ -11,14 +11,14 @@ function matchesDogFilters(dog, filters = {}) {
 const dogService = {
   getAll: async (filters = {}) => {
     const dogs = getPets()
-      .filter(pet => pet.species === 'DOG')
+      .filter(pet => pet.species === 'DOG' && pet.status !== 'ADOPTED')
       .filter(dog => matchesDogFilters(dog, filters))
 
     return { data: { content: dogs, totalPages: 1 } }
   },
 
   getFeatured: async () => ({
-    data: getPets().filter(pet => pet.species === 'DOG').slice(0, 3),
+    data: getPets().filter(pet => pet.species === 'DOG' && pet.status !== 'ADOPTED').slice(0, 3),
   }),
 
   getById: async (id) => {

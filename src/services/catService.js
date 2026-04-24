@@ -10,14 +10,14 @@ function matchesCatFilters(cat, filters = {}) {
 const catService = {
   getAll: async (filters = {}) => {
     const cats = getPets()
-      .filter(pet => pet.species === 'CAT')
+      .filter(pet => pet.species === 'CAT' && pet.status !== 'ADOPTED')
       .filter(cat => matchesCatFilters(cat, filters))
 
     return { data: { content: cats, totalPages: 1 } }
   },
 
   getFeatured: async () => ({
-    data: getPets().filter(pet => pet.species === 'CAT').slice(0, 3),
+    data: getPets().filter(pet => pet.species === 'CAT' && pet.status !== 'ADOPTED').slice(0, 3),
   }),
 
   getById: async (id) => {

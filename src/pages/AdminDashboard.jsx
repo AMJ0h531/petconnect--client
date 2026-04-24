@@ -8,18 +8,23 @@ export default function AdminDashboard() {
   const [appFilter, setAppFilter] = useState('all')
   const [actionError, setActionError] = useState(null)
   const [activeActionId, setActiveActionId] = useState(null)
+  const [refreshed, setRefreshed] = useState(false)
 
   useEffect(() => {
     loadApplications()
   }, [])
 
-  const loadApplications = async () => {
+  const loadApplications = async (showConfirmation = false) => {
     setLoading(true)
 
     try {
       const response = await applicationService.getAll()
       setApps(response.data || [])
       setActionError(null)
+      if (showConfirmation) {
+        setRefreshed(true)
+        setTimeout(() => setRefreshed(false), 2000)
+      }
     } catch (error) {
       console.error('Failed to load applications', error)
       setActionError('Could not load adoption applications.')
@@ -62,10 +67,10 @@ export default function AdminDashboard() {
         </div>
         <button
           type="button"
-          onClick={loadApplications}
+          onClick={() => loadApplications(true)}
           className="rounded-xl border border-stone-200 px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-50"
         >
-          Refresh queue
+          {refreshed ? '✓ Refreshed' : 'Refresh queue'}
         </button>
       </div>
 
