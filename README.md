@@ -1,106 +1,149 @@
 # Pet Connect Plus
-My sys tem will provide more improved opertaional efficiency for the shelters and the pet owners.  The target users are Adopters/pet owners and Admin shelter staff/pet owners depending on the process needed at the time.  The process also increase pets services will be provided to the pets in timely manner depending on the needed services.
+
+My system will provide improved operational efficiency for shelters and pet owners. The target users are adopters/pet owners and admin shelter staff, depending on the process needed at the time. The platform also ensures that pets receive services in a timely manner based on their needs.
 
 ## Description
 
-Problem Statement: My proposal is for a Pet Adoption Connect and Owner to Sitter platform for my Capstone Project.  Because animal shelters often have to rely on manual or outdated systems to manage per records and adoption applications it has created inefficiencies delayed responses to adopters, they have a hard time tracking post-adoption follow-ups.  As well as owners needing to effectively communicate to pet sitters the needs that need to be met on daily basis.  The owners can keep track of pet sitters and the tasks that are required of them from day to day.An in-depth paragraph about your project and overview of use.
+**Problem Statement:** My proposal is for a Pet Adoption Connect and Owner to Sitter platform for my Capstone Project. Animal shelters often rely on manual or outdated systems to manage pet records and adoption applications, which creates inefficiencies, delayed responses to adopters, and difficulty tracking post-adoption follow-ups. Additionally, owners need an effective way to communicate daily care needs to pet sitters and track the tasks required of them.
 
-Proposed Solution: Pet Adoption/Owner Connect which is a full-stack web application that helps streamline the adoption process.  The platform enables users to browse available pets during the adoption process which will provide administrators tools to manage pet records, review applications and schedule follow-up reminders.  In addition, owners will be able to create tasks for pet sitters to take care of during the care process of the animals.  This will also create the connection between the owners and the centers that provide services for the pets after adoption for care.
+**Proposed Solution:** Pet Adoption/Owner Connect is a full-stack web application that streamlines the adoption process. The platform enables users to browse available pets, and provides administrators tools to manage pet records, review applications, and schedule follow-up reminders. Owners can also create tasks for pet sitters to manage during the care process, creating a connection between owners and the service centers that care for pets after adoption.
 
 ## Getting Started
 
 ### Dependencies
 
-* Describe any prerequisites, libraries, OS version, etc., needed before installing program.
-* ex. Windows 10
+* Node.js 18+
+* npm 9+
+* Spring Boot backend running on `localhost:8080`
+* Git
 
 ### Installing
 
-* How/where to download your program
-* Any modifications needed to be made to files/folders
+1. Clone the repository:
+
+```bash
+git clone https://github.com/AMJ0h531/petconnect--client
+cd petconnect--client
+```
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+1. Create your `.env` file:
+
+```bash
+cp .env.example .env
+# .env already points to localhost:8080 for local dev
+```
 
 ### Executing program
 
-* How to run the program
+1. Make sure your Spring Boot backend is running on `localhost:8080`.
 
-* Step-by-step bullets
+1. Start the development server:
 
-code blocks for commands
+```bash
+npm run dev
+```
+
+1. Open your browser and navigate to:
+
+```text
+http://localhost:5173
+```
 
 ## Help
 
-Any advise for common problems or issues.
+**Backend not running:** Ensure your Spring Boot backend is started before launching the frontend. The app will load but API calls will fail if the backend is unreachable.
 
-command to run if program contains helper info
+**Port already in use:** If port 5173 is taken, Vite will automatically try the next available port — check your terminal output for the actual URL.
+
+**Dependency issues:** If you encounter install errors, try deleting `node_modules` and reinstalling:
+
+```bash
+rm -rf node_modules
+npm install
+```
+
+**Environment variables not loading:** Make sure your `.env` file exists at the project root and that variable names start with `VITE_` to be accessible in the app.
 
 ## Authors
 
-Contributors names and contact info
-
-Anna Marie Johnson 
+**Anna Marie Johnson**
 ajohnson53169@gmail.com
 
 ## Version History
 
-* 0.2
-* Various bug fixes and optimizations
-* See [commit change]() or See [release history]()
 * 0.1
-* Initial Release
+  * Initial Release
 
 ## License
 
-This project is licensed under the [NAME HERE] License - see the LICENSE.md file for details
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
 
 ## Acknowledgments
 
-Inspiration, code snippets, etc.
-* [awesome-readme](https://github.com/matiassingers/awesome-readme)
-* [PurpleBooth](https://gist.github.com/PurpleBooth/109311bb0361f32d87a2)
-* [dbader](https://github.com/dbader/readme-template)
-* [zenorocha](https://gist.github.com/zenorocha/4526327)
-* [fvcproductions](https://gist.github.com/fvcproductions/1bfc2d4aecb01a834b46)
+* [React](https://react.dev/) - Frontend UI library
+* [Vite](https://vitejs.dev/) - Build tool and dev server
+* [Bootstrap](https://getbootstrap.com/) - CSS framework
+* [React Router](https://reactrouter.com/) - Client-side routing
+* [Axios](https://axios-http.com/) - HTTP client
 
-<!-- Add this to your frontend README -->
-
-## Running Pet Connect Plus locally
+## Running Pet Connect Plus Locally
 
 ### Prerequisites
-Node.js 18+
-Your Spring Boot backend running on localhost:8080
+
+* Node.js 18+
+* Your Spring Boot backend running on `localhost:8080`
 
 ### Setup
 
-1. Clone the frontend repo
-bash
+1. Clone the frontend repo:
+
+```bash
 git clone https://github.com/AMJ0h531/petconnect--client
 cd petconnect--client
+```
 
-2. Install dependencies
-bash
+1. Install dependencies:
+
+```bash
 npm install
+```
 
-3. Create your .env file
-bash
+1. Create your `.env` file:
+
+```bash
 cp .env.example .env
 # .env already points to localhost:8080 for local dev
+```
 
-4. Start the development server
-bash
+1. Start the development server:
+
+```bash
 npm run dev
+```
 
-Open http://localhost:5173
+Open <http://localhost:5173>
 
-### Building for AWS deployment
-bash
+### Building for AWS Deployment
+
+```bash
 # Sets VITE_API_URL to your EC2 address, outputs to dist/
 VITE_API_URL=http://your-ec2-ip:8080/api npm run build
 
 # Upload dist/ folder to S3
 aws s3 sync dist/ s3://your-bucket-name --delete
+```
 
-### Demo credentials (from seed data)
-| Role    | Username       | Password   |
-|---------|---------------|------------|
-| Admin   | shelter_admin  | admin123   |
-| User    | user_anna      | admin123   |
+### Demo Credentials (Local Seed Data Only)
+
+> **Note:** These credentials are for local development only. Do not use them in any production or publicly accessible environment.
+
+| Role  | Username      | Password |
+|-------|---------------|----------|
+| Admin | shelter_admin | admin123 |
+| User  | user_anna     | admin123 |
