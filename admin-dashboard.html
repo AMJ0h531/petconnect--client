@@ -120,11 +120,42 @@
     .btn-send-reminder { background:var(--green); color:#fff; border:none; padding:12px 32px; border-radius:99px; font-size:.92rem; font-weight:700; cursor:pointer; transition:background .2s,transform .15s; box-shadow:0 4px 14px rgba(5,150,105,.25); }
     .btn-send-reminder:hover { background:#047857; transform:translateY(-1px); }
 
+    /* ── CARE CHECKLIST ── */
+    .cr-divider { border:none; border-top:1.5px solid var(--sky-100); margin:8px 0 12px; }
+    .cr-checklist { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:6px; }
+    .cr-check-item { display:flex; align-items:center; gap:9px; background:var(--sky-50); border:1.5px solid var(--sky-200); border-radius:10px; padding:9px 13px; cursor:pointer; transition:border-color .2s,background .2s; font-size:.85rem; font-family:'DM Sans',sans-serif; }
+    .cr-check-item:hover { border-color:var(--sky-400); background:var(--sky-100); }
+    .cr-check-item input[type=checkbox] { accent-color:var(--sky-500); width:15px; height:15px; flex-shrink:0; cursor:pointer; }
+    .btn-sitter-link { background:var(--sky-700); color:#fff; border:none; padding:10px 22px; border-radius:99px; font-size:.86rem; font-weight:700; cursor:pointer; transition:background .2s; }
+    .btn-sitter-link:hover { background:var(--sky-900); }
+    .sitter-link-box { background:var(--sky-50); border:1.5px solid var(--sky-200); border-radius:10px; padding:12px 14px; margin-top:10px; display:none; }
+    .sitter-link-box strong { font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.7px; color:var(--sky-700); display:block; margin-bottom:6px; }
+    .sitter-link-box input { width:100%; background:#fff; border:1.5px solid var(--sky-200); border-radius:8px; padding:8px 12px; font-size:.82rem; color:var(--text); cursor:pointer; font-family:'DM Sans',sans-serif; }
+
+    /* ── SITTER REPORTS ── */
+    .sitter-reports-wrap { margin-top:32px; display:none; }
+    .sr-card { background:#fff; border:1.5px solid var(--sky-200); border-radius:20px; overflow:hidden; box-shadow:var(--shadow); }
+    .sr-header { background:linear-gradient(135deg,#4f46e5,#6d28d9); padding:22px 28px; color:#fff; }
+    .sr-header h2 { font-family:'Playfair Display',serif; font-size:1.3rem; font-weight:700; margin-bottom:3px; }
+    .sr-header p { font-size:.85rem; opacity:.85; }
+    .sr-body { padding:20px 24px; }
+    .sr-report { background:var(--sky-50); border:1.5px solid var(--sky-200); border-radius:14px; padding:14px 18px; margin-bottom:12px; }
+    .sr-report:last-child { margin-bottom:0; }
+    .sr-meta { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:8px; flex-wrap:wrap; }
+    .sr-sitter-name { font-weight:700; color:var(--sky-900); font-size:.92rem; }
+    .sr-sub { font-size:.78rem; color:var(--text-soft); margin-top:2px; }
+    .sr-date { font-size:.8rem; color:var(--text-soft); flex-shrink:0; }
+    .sr-tasks { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; }
+    .sr-task { background:#e0f2fe; color:var(--sky-700); font-size:.74rem; font-weight:600; padding:3px 10px; border-radius:99px; }
+    .sr-notes-text { font-size:.84rem; color:var(--text-soft); font-style:italic; border-top:1px solid var(--sky-100); padding-top:8px; margin-top:4px; }
+    .sr-empty { padding:32px 24px; text-align:center; color:var(--text-soft); font-size:.9rem; }
+
     @media(max-width:900px) {
       nav { padding:0 20px; }
       .page-wrap { padding:28px 20px 60px; }
       .summary-grid { grid-template-columns:repeat(2,1fr); }
       .cr-row { grid-template-columns:1fr; }
+      .cr-checklist { grid-template-columns:1fr; }
     }
   </style>
 </head>
@@ -186,7 +217,7 @@
       <h1>Admin Dashboard</h1>
       <p>Review adoption applications and approve or deny each request.</p>
     </div>
-    <button class="refresh-btn" onclick="renderDashboard()">↻ Refresh</button>
+    <button id="refreshBtn" class="refresh-btn" onclick="refreshDashboard()">↻ Refresh</button>
     <button class="refresh-btn" style="color:#dc2626;border-color:#fca5a5;" onclick="adminLogout()">Sign Out</button>
   </div>
 
@@ -241,9 +272,54 @@
           <label>Additional Care Notes</label>
           <textarea id="cr-notes" placeholder="Behavioral notes, walking routine, favorite toys, allergies..."></textarea>
         </div>
-        <div>
-          <button class="btn-send-reminder" onclick="sendCareReminder()">📧 Send Care Reminder to Owner</button>
+
+        <hr class="cr-divider"/>
+
+        <!-- CARE CHECKLIST FOR SITTER -->
+        <div class="cr-group">
+          <label>📌 Care Checklist for Sitter</label>
+          <p style="font-size:.8rem;color:var(--text-soft);margin-bottom:10px;">Select the tasks the sitter must complete and confirm on each visit. These will appear on the sitter's form.</p>
+          <div class="cr-checklist" id="cr-checklist">
+            <label class="cr-check-item"><input type="checkbox" checked/><span>Morning feeding</span></label>
+            <label class="cr-check-item"><input type="checkbox" checked/><span>Evening feeding</span></label>
+            <label class="cr-check-item"><input type="checkbox" checked/><span>Fresh water daily</span></label>
+            <label class="cr-check-item"><input type="checkbox" checked/><span>Morning walk</span></label>
+            <label class="cr-check-item"><input type="checkbox"/><span>Evening walk</span></label>
+            <label class="cr-check-item"><input type="checkbox"/><span>Administer medication</span></label>
+            <label class="cr-check-item"><input type="checkbox"/><span>Playtime (30 min)</span></label>
+            <label class="cr-check-item"><input type="checkbox"/><span>Grooming / brushing</span></label>
+            <label class="cr-check-item"><input type="checkbox"/><span>Litter box cleaning</span></label>
+            <label class="cr-check-item"><input type="checkbox"/><span>Check for injuries</span></label>
+          </div>
         </div>
+
+        <hr class="cr-divider"/>
+
+        <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start;">
+          <div>
+            <button class="btn-send-reminder" onclick="sendCareReminder()">📧 Send Care Reminder to Owner</button>
+          </div>
+          <div>
+            <button class="btn-sitter-link" onclick="copySitterLink()">🔗 Copy Sitter Form Link</button>
+            <div class="sitter-link-box" id="sitterLinkBox">
+              <strong>Share this link with the pet sitter:</strong>
+              <input type="text" id="sitterLinkInput" readonly onclick="this.select()"/>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SITTER COMPLETION REPORTS -->
+  <div class="sitter-reports-wrap" id="sitterReportsWrap">
+    <div class="sr-card">
+      <div class="sr-header">
+        <h2>🐾 Sitter Completion Reports</h2>
+        <p>Reports submitted by pet sitters — tracked here and visible to the owner.</p>
+      </div>
+      <div class="sr-body" id="sitterReportsList">
+        <div class="sr-empty">No sitter reports submitted yet.</div>
       </div>
     </div>
   </div>
@@ -423,6 +499,7 @@
     renderSummary(apps);
     renderTable();
     updateCareReminderSection(apps);
+    renderSitterReports();
   }
 
   function updateCareReminderSection(apps) {
@@ -442,7 +519,8 @@
     }
   }
 
-  const CARE_KEY = 'petconnect.care.reminders';
+  const CARE_KEY   = 'petconnect.care.reminders';
+  const SITTER_KEY = 'petconnect.sitter.reports';
 
   function sendCareReminder() {
     const petName    = document.getElementById('cr-petName').value.trim();
@@ -452,16 +530,67 @@
     const meds       = document.getElementById('cr-meds').value.trim();
     const vet        = document.getElementById('cr-vet').value.trim();
     const notes      = document.getElementById('cr-notes').value.trim();
+    const checklist  = Array.from(document.querySelectorAll('#cr-checklist input[type=checkbox]:checked'))
+                         .map(cb => cb.closest('.cr-check-item').querySelector('span').textContent.trim());
     if (!petName || !ownerEmail) {
       showToast('Please fill in Pet Name and Owner Email before sending.', 'info');
       return;
     }
-    // Save reminder so owner dashboard can display it
     const reminders = JSON.parse(localStorage.getItem(CARE_KEY) || '{}');
-    reminders[ownerEmail.toLowerCase()] = { petName, ownerName, ownerEmail, feeding, meds, vet, notes, sentAt: new Date().toISOString() };
+    reminders[ownerEmail.toLowerCase()] = { petName, ownerName, ownerEmail, feeding, meds, vet, notes, checklist, sentAt: new Date().toISOString() };
     localStorage.setItem(CARE_KEY, JSON.stringify(reminders));
     showToast(`📧 Care reminder for ${petName} sent to ${ownerEmail}!`, 'success');
-    setTimeout(() => showToast(`${ownerName || 'The owner'} can now view care instructions in their Owner Dashboard.`, 'success'), 1300);
+    setTimeout(() => showToast(`${ownerName || 'The owner'} can view care instructions + sitter checklist on their Owner Dashboard.`, 'success'), 1400);
+  }
+
+  function copySitterLink() {
+    const ownerEmail = document.getElementById('cr-ownerEmail').value.trim();
+    const petName    = document.getElementById('cr-petName').value.trim();
+    if (!ownerEmail) { showToast('Fill in Owner Email first.', 'info'); return; }
+    const url = `sitter-form.html?owner=${encodeURIComponent(ownerEmail)}&pet=${encodeURIComponent(petName)}`;
+    const box  = document.getElementById('sitterLinkBox');
+    const inp  = document.getElementById('sitterLinkInput');
+    inp.value  = url;
+    box.style.display = 'block';
+    inp.select();
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(() => showToast('🔗 Sitter form link copied to clipboard!', 'success'));
+    } else {
+      showToast('🔗 Link shown below — select and copy to share with the sitter.', 'info');
+    }
+  }
+
+  function renderSitterReports() {
+    const reports = JSON.parse(localStorage.getItem(SITTER_KEY) || '[]');
+    const wrap = document.getElementById('sitterReportsWrap');
+    const list = document.getElementById('sitterReportsList');
+    if (reports.length === 0) {
+      wrap.style.display = 'none';
+      return;
+    }
+    wrap.style.display = 'block';
+    list.innerHTML = reports.slice().reverse().map(r => `
+      <div class="sr-report">
+        <div class="sr-meta">
+          <div>
+            <div class="sr-sitter-name">${esc(r.sitterName)}</div>
+            <div class="sr-sub">${r.sitterEmail ? esc(r.sitterEmail) + ' · ' : ''}Pet: <strong>${esc(r.petName || '—')}</strong> · Date: ${r.careDate || '—'}</div>
+          </div>
+          <span class="sr-date">${new Date(r.submittedAt).toLocaleString()}</span>
+        </div>
+        ${r.completedTasks && r.completedTasks.length
+          ? `<div class="sr-tasks">${r.completedTasks.map(t => `<span class="sr-task">✓ ${esc(t)}</span>`).join('')}</div>`
+          : '<div style="font-size:.82rem;color:var(--text-soft);margin-bottom:6px;">No tasks logged.</div>'}
+        ${r.notes ? `<div class="sr-notes-text">"${esc(r.notes)}"</div>` : ''}
+      </div>`).join('');
+  }
+
+  function refreshDashboard() {
+    const btn = document.getElementById('refreshBtn');
+    btn.textContent = '↻ Refreshing…';
+    btn.disabled = true;
+    renderDashboard();
+    setTimeout(() => { btn.textContent = '↻ Refresh'; btn.disabled = false; }, 700);
   }
 
   function adminLogout() {

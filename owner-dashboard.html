@@ -90,7 +90,23 @@
     .care-detail-row:last-child { margin-bottom:0; }
     .care-detail-row strong { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.7px; color:#047857; }
     .care-detail-row span { color:#064e3b; line-height:1.5; }
+    .care-checklist-list { display:flex; flex-wrap:wrap; gap:6px; margin-top:4px; }
+    .care-checklist-item { background:#d1fae5; color:#065f46; font-size:.76rem; font-weight:600; padding:3px 10px; border-radius:99px; }
     .care-pending-note { background:rgba(255,255,255,.6); border:1.5px dashed rgba(5,150,105,.3); border-radius:12px; padding:14px 16px; margin-top:16px; font-size:.84rem; color:#047857; text-align:center; }
+    .sitter-link-card { background:rgba(255,255,255,.7); border:1.5px solid rgba(14,165,233,.25); border-radius:14px; padding:16px 20px; margin-top:14px; text-align:left; }
+    .sitter-link-card h4 { font-size:.85rem; font-weight:700; color:var(--sky-700); margin-bottom:6px; }
+    .sitter-link-card p { font-size:.82rem; color:var(--text-soft); margin-bottom:10px; }
+    .sitter-link-card input { width:100%; background:var(--sky-50); border:1.5px solid var(--sky-200); border-radius:8px; padding:8px 12px; font-size:.8rem; color:var(--text); cursor:pointer; font-family:'DM Sans',sans-serif; }
+    /* Sitter reports inside owner card */
+    .sitter-report-card { background:rgba(255,255,255,.7); border:1.5px solid rgba(14,165,233,.2); border-radius:14px; padding:16px 20px; margin-top:14px; text-align:left; }
+    .sitter-report-card h4 { font-family:'Playfair Display',serif; font-size:.95rem; font-weight:700; color:var(--sky-700); margin-bottom:10px; }
+    .sr-entry { border-top:1px solid var(--sky-100); padding-top:10px; margin-top:10px; }
+    .sr-entry:first-child { border-top:none; padding-top:0; margin-top:0; }
+    .sr-entry-name { font-weight:700; font-size:.88rem; color:var(--sky-900); }
+    .sr-entry-date { font-size:.78rem; color:var(--text-soft); }
+    .sr-entry-tasks { display:flex; flex-wrap:wrap; gap:5px; margin:6px 0; }
+    .sr-entry-task { background:#e0f2fe; color:var(--sky-700); font-size:.73rem; font-weight:600; padding:2px 8px; border-radius:99px; }
+    .sr-entry-notes { font-size:.82rem; color:var(--text-soft); font-style:italic; }
     .btn-browse { display:inline-block; margin-top:14px; background:transparent; color:#dc2626; border:2px solid rgba(220,38,38,.4); padding:10px 26px; border-radius:99px; font-size:.9rem; font-weight:700; text-decoration:none; transition:background .2s,color .2s; }
     .btn-browse:hover { background:#fee2e2; }
 
@@ -157,12 +173,14 @@
 </div>
 
 <script>
-  const APPS_KEY = 'petconnect.applications';
-  const CARE_KEY = 'petconnect.care.reminders';
+  const APPS_KEY   = 'petconnect.applications';
+  const CARE_KEY   = 'petconnect.care.reminders';
+  const SITTER_KEY = 'petconnect.sitter.reports';
   let _confettiLaunched = false;
 
-  function getApps() { return JSON.parse(localStorage.getItem(APPS_KEY) || '[]'); }
-  function getCareReminders() { return JSON.parse(localStorage.getItem(CARE_KEY) || '{}'); }
+  function getApps()          { return JSON.parse(localStorage.getItem(APPS_KEY)   || '[]'); }
+  function getCareReminders() { return JSON.parse(localStorage.getItem(CARE_KEY)   || '{}'); }
+  function getSitterReports() { return JSON.parse(localStorage.getItem(SITTER_KEY) || '[]'); }
 
   function checkStatus(event) {
     event.preventDefault();
@@ -196,22 +214,54 @@
       let bannerHtml = '';
 
       if (app.status === 'approved') {
-        const reminders = getCareReminders();
-        const reminder  = reminders[(app.applicantEmail || '').toLowerCase()];
+        const reminders    = getCareReminders();
+        const ownerKey     = (app.applicantEmail || '').toLowerCase();
+        const reminder     = reminders[ownerKey];
+        const sitterReports = getSitterReports().filter(r =>
+          (r.ownerEmail || '').toLowerCase() === ownerKey || (r.petName || '').toLowerCase() === (app.petName || '').toLowerCase()
+        );
         let careHtml = '';
         if (reminder) {
           const rows = [
-            { label:'Feeding Schedule', val: reminder.feeding },
+            { label:'Feeding Schedule',          val: reminder.feeding },
             { label:'Medications / Special Needs', val: reminder.meds },
-            { label:'Vet Contact', val: reminder.vet },
-            { label:'Additional Notes', val: reminder.notes },
+            { label:'Vet Contact',               val: reminder.vet },
+            { label:'Additional Notes',          val: reminder.notes },
           ].filter(r => r.val);
+          const checklistHtml = reminder.checklist && reminder.checklist.length
+            ? `<div class="care-detail-row">
+                 <strong>Sitter Care Tasks</strong>
+                 <div class="care-checklist-list">${reminder.checklist.map(t => `<span class="care-checklist-item">✓ ${escHtml(t)}</span>`).join('')}</div>
+               </div>`
+            : '';
+          const sitterUrl  = `sitter-form.html?owner=${encodeURIComponent(app.applicantEmail || '')}&pet=${encodeURIComponent(app.petName || '')}`;
+          const sitterLinkHtml = `
+            <div class="sitter-link-card">
+              <h4>🔗 Forward to Your Pet Sitter</h4>
+              <p>Share this link with your sitter so they can log their completed care tasks.</p>
+              <input type="text" readonly value="${escHtml(sitterUrl)}" onclick="this.select()" title="Click to select, then copy"/>
+            </div>`;
+          const sitterReportsHtml = sitterReports.length
+            ? `<div class="sitter-report-card">
+                 <h4>🐾 Sitter Completion Reports</h4>
+                 ${sitterReports.slice().reverse().map(r => `
+                   <div class="sr-entry">
+                     <div class="sr-entry-name">${escHtml(r.sitterName)}</div>
+                     <div class="sr-entry-date">${r.careDate ? 'Visit: ' + r.careDate + ' · ' : ''}Submitted: ${new Date(r.submittedAt).toLocaleString()}</div>
+                     ${r.completedTasks && r.completedTasks.length ? `<div class="sr-entry-tasks">${r.completedTasks.map(t => `<span class="sr-entry-task">✓ ${escHtml(t)}</span>`).join('')}</div>` : ''}
+                     ${r.notes ? `<div class="sr-entry-notes">"${escHtml(r.notes)}"</div>` : ''}
+                   </div>`).join('')}
+               </div>`
+            : '';
           careHtml = `
             <div class="care-detail-card">
               <h4>📋 Care Instructions from the Adoption Center</h4>
               ${rows.map(r => `<div class="care-detail-row"><strong>${escHtml(r.label)}</strong><span>${escHtml(r.val)}</span></div>`).join('')}
-              ${!rows.length ? '<p style="font-size:.85rem;color:#047857;">Care details will appear here once the admin completes the form.</p>' : ''}
-            </div>`;
+              ${checklistHtml}
+              ${!rows.length && !checklistHtml ? '<p style="font-size:.85rem;color:#047857;">Care details will appear here once the admin completes the form.</p>' : ''}
+            </div>
+            ${sitterLinkHtml}
+            ${sitterReportsHtml}`;
         } else {
           careHtml = `<div class="care-pending-note">⏳ The adoption center is preparing your care instructions — check back soon!</div>`;
         }

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sitter Care Form — PetConnect+</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --sky-50:#f0f9ff; --sky-100:#e0f2fe; --sky-200:#bae6fd;
+      --sky-400:#38bdf8; --sky-500:#0ea5e9; --sky-600:#0284c7;
+      --sky-700:#0369a1; --sky-900:#0c4a6e;
+      --text:#0c2d45; --text-soft:#4a7fa0;
+      --green:#059669; --green-light:#d1fae5;
+      --shadow:0 4px 24px rgba(14,165,233,.10);
+    }
+    html { scroll-behavior:smooth; }
+    body { font-family:'DM Sans',sans-serif; background:var(--sky-50); color:var(--text); min-height:100vh; }
+
+    nav {
+      position:sticky; top:0; z-index:200;
+      background:rgba(240,249,255,.96); backdrop-filter:blur(10px);
+      border-bottom:1.5px solid var(--sky-200);
+      padding:0 48px; display:flex; align-items:center; justify-content:space-between; height:68px;
+    }
+    .nav-logo { font-family:'Playfair Display',serif; font-size:1.45rem; font-weight:900; color:var(--sky-700); letter-spacing:-.5px; text-decoration:none; display:flex; align-items:center; gap:6px; }
+    .nav-logo .plus { background:var(--sky-500); color:#fff; font-size:.82rem; font-family:'DM Sans',sans-serif; font-weight:800; padding:2px 8px; border-radius:7px; }
+
+    .page-wrap { max-width:660px; margin:0 auto; padding:52px 24px 80px; }
+
+    /* ── LOOKUP CARD ── */
+    .lookup-card { background:#fff; border:1.5px solid var(--sky-200); border-radius:24px; padding:44px 40px; box-shadow:var(--shadow); text-align:center; }
+    .lookup-icon { font-size:3.2rem; display:block; margin-bottom:14px; }
+    .lookup-card h1 { font-family:'Playfair Display',serif; font-size:1.9rem; font-weight:900; color:var(--sky-900); margin-bottom:8px; }
+    .lookup-card p { color:var(--text-soft); font-size:.92rem; line-height:1.6; margin-bottom:28px; }
+    .field { text-align:left; margin-bottom:14px; }
+    .field label { display:block; font-size:.76rem; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--sky-700); margin-bottom:6px; }
+    .field input { width:100%; border:1.5px solid var(--sky-200); border-radius:10px; padding:11px 14px; font-family:'DM Sans',sans-serif; font-size:.95rem; color:var(--text); outline:none; transition:border-color .2s,box-shadow .2s; }
+    .field input:focus { border-color:var(--sky-500); box-shadow:0 0 0 3px rgba(14,165,233,.12); }
+    .lookup-error { color:#dc2626; font-size:.84rem; margin-bottom:10px; display:none; }
+    .lookup-error.show { display:block; }
+    .btn-lookup { width:100%; background:var(--sky-500); color:#fff; border:none; padding:13px; border-radius:99px; font-size:.95rem; font-weight:700; cursor:pointer; transition:background .2s; }
+    .btn-lookup:hover { background:var(--sky-600); }
+
+    /* ── FORM CARD ── */
+    .form-card { background:#fff; border:1.5px solid var(--sky-200); border-radius:24px; overflow:hidden; box-shadow:var(--shadow); display:none; }
+    .form-card-header { background:linear-gradient(135deg,var(--sky-600),#075985); padding:28px 32px; color:#fff; }
+    .form-card-header h2 { font-family:'Playfair Display',serif; font-size:1.5rem; font-weight:700; margin-bottom:4px; }
+    .form-card-header p { font-size:.88rem; opacity:.85; }
+    .form-body { padding:30px 32px; display:flex; flex-direction:column; gap:18px; }
+    .section-title { font-family:'Playfair Display',serif; font-size:1rem; font-weight:700; color:var(--sky-700); border-bottom:1.5px solid var(--sky-100); padding-bottom:8px; }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+
+    /* Care instructions display */
+    .care-info { background:var(--sky-50); border:1.5px solid var(--sky-200); border-radius:14px; padding:16px 18px; }
+    .care-info-row { display:flex; flex-direction:column; gap:2px; margin-bottom:10px; font-size:.86rem; }
+    .care-info-row:last-child { margin-bottom:0; }
+    .care-info-row strong { font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.7px; color:var(--sky-700); }
+    .care-info-row span { color:var(--text); line-height:1.5; }
+
+    /* Checklist */
+    .sitter-checklist { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .sitter-check { display:flex; align-items:center; gap:9px; background:var(--sky-50); border:1.5px solid var(--sky-200); border-radius:10px; padding:9px 13px; cursor:pointer; transition:border-color .2s,background .2s; font-size:.86rem; }
+    .sitter-check:hover { border-color:var(--sky-400); background:var(--sky-100); }
+    .sitter-check input[type=checkbox] { accent-color:var(--sky-500); width:15px; height:15px; flex-shrink:0; cursor:pointer; }
+    .sitter-check.checked { background:#e0f2fe; border-color:var(--sky-500); }
+    .sitter-check.checked span { color:var(--sky-700); font-weight:600; }
+
+    textarea { border:1.5px solid var(--sky-200); border-radius:10px; padding:10px 14px; font-family:'DM Sans',sans-serif; font-size:.9rem; color:var(--text); outline:none; transition:border-color .2s,box-shadow .2s; width:100%; resize:vertical; min-height:80px; background:var(--sky-50); }
+    textarea:focus { border-color:var(--sky-500); box-shadow:0 0 0 3px rgba(14,165,233,.12); background:#fff; }
+
+    .btn-submit { background:var(--green); color:#fff; border:none; padding:14px 32px; border-radius:99px; font-size:.96rem; font-weight:700; cursor:pointer; transition:background .2s,transform .15s; box-shadow:0 4px 16px rgba(5,150,105,.25); width:100%; }
+    .btn-submit:hover { background:#047857; transform:translateY(-1px); }
+    .btn-submit:disabled { opacity:.55; cursor:default; transform:none; }
+
+    /* ── COMPLETION BANNER ── */
+    .completion-banner { display:none; background:linear-gradient(135deg,#065f46,#047857); color:#fff; border-radius:24px; padding:44px 36px; text-align:center; box-shadow:var(--shadow); }
+    .completion-banner.show { display:block; }
+    .completion-banner .icon { font-size:3.2rem; margin-bottom:16px; display:block; }
+    .completion-banner h2 { font-family:'Playfair Display',serif; font-size:1.8rem; margin-bottom:10px; }
+    .completion-banner p { font-size:.92rem; opacity:.9; line-height:1.6; margin-bottom:18px; }
+    .btn-another { display:inline-block; background:rgba(255,255,255,.2); color:#fff; border:2px solid rgba(255,255,255,.5); padding:10px 26px; border-radius:99px; font-size:.9rem; font-weight:700; text-decoration:none; cursor:pointer; transition:background .2s; }
+    .btn-another:hover { background:rgba(255,255,255,.3); }
+
+    /* ── TOAST ── */
+    .toast-container { position:fixed; bottom:28px; right:28px; z-index:9999; display:flex; flex-direction:column; gap:10px; pointer-events:none; }
+    .toast { background:var(--sky-900); color:#fff; padding:14px 22px; border-radius:14px; font-size:.9rem; font-weight:500; box-shadow:0 8px 28px rgba(12,45,69,.35); transform:translateX(120%); transition:transform .4s cubic-bezier(.34,1.56,.64,1); pointer-events:auto; max-width:320px; }
+    .toast.show { transform:translateX(0); }
+    .toast.success { background:#065f46; }
+
+    @media(max-width:600px) {
+      nav { padding:0 20px; }
+      .page-wrap { padding:32px 16px 60px; }
+      .lookup-card, .form-body { padding:28px 22px; }
+      .form-card-header { padding:22px 22px; }
+      .form-row, .sitter-checklist { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<nav>
+  <a href="index.html" class="nav-logo">PetConnect<span class="plus">+</span></a>
+</nav>
+
+<div class="page-wrap">
+
+  <!-- LOOKUP SECTION -->
+  <div id="lookupSection">
+    <div class="lookup-card">
+      <span class="lookup-icon">🐾</span>
+      <h1>Pet Sitter Care Form</h1>
+      <p>Enter the owner's email address to load the care checklist for your assigned pet.</p>
+      <div class="field">
+        <label>Owner's Email Address</label>
+        <input type="email" id="ownerEmailInput" placeholder="owner@email.com" autocomplete="email"/>
+      </div>
+      <div class="lookup-error" id="lookupError">No care instructions found for that email. Ask the owner to confirm the email used during adoption.</div>
+      <button type="button" class="btn-lookup" onclick="loadCareInstructions()">Load My Care Checklist</button>
+    </div>
+  </div>
+
+  <!-- SITTER FORM -->
+  <div class="form-card" id="formSection">
+    <div class="form-card-header">
+      <h2>🐾 Care Checklist for <span id="headerPetName">the Pet</span></h2>
+      <p>Complete all assigned tasks and submit your report. Both the owner and adoption agency will be notified.</p>
+    </div>
+    <div class="form-body">
+
+      <!-- Care instructions from admin -->
+      <div>
+        <div class="section-title" style="margin-bottom:10px;">📋 Care Instructions</div>
+        <div class="care-info" id="careInfoBox">
+          <p style="font-size:.88rem;color:var(--text-soft);">Loading care instructions…</p>
+        </div>
+      </div>
+
+      <!-- Sitter info -->
+      <div>
+        <div class="section-title" style="margin-bottom:12px;">Your Information</div>
+        <div class="form-row">
+          <div class="field" style="margin-bottom:0;">
+            <label>Your Name <span style="color:#dc2626;">*</span></label>
+            <input type="text" id="s-name" placeholder="Pet sitter's name"/>
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label>Your Email <span style="color:#dc2626;">*</span></label>
+            <input type="email" id="s-email" placeholder="sitter@email.com"/>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:0;margin-top:12px;">
+          <label>Date of Care</label>
+          <input type="date" id="s-date"/>
+        </div>
+      </div>
+
+      <!-- Checklist -->
+      <div>
+        <div class="section-title" style="margin-bottom:12px;">✅ Tasks Completed This Visit</div>
+        <div class="sitter-checklist" id="sitterChecklist">
+          <!-- populated dynamically from care reminder checklist -->
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="field" style="margin-bottom:0;">
+        <label>Notes / Observations</label>
+        <textarea id="s-notes" placeholder="Any observations, concerns, or notes about the pet today…"></textarea>
+      </div>
+
+      <button class="btn-submit" id="submitBtn" onclick="submitSitterForm()">✅ Submit Report & Notify Owner + Agency</button>
+    </div>
+  </div>
+
+  <!-- COMPLETION BANNER -->
+  <div class="completion-banner" id="completionBanner">
+    <span class="icon">🎉</span>
+    <h2>Care Report Submitted!</h2>
+    <p>The owner and adoption agency have been notified that care tasks for <strong id="completionPetName">the pet</strong> were completed. Thank you!</p>
+    <button class="btn-another" onclick="resetForm()">Submit Another Report</button>
+  </div>
+
+</div>
+
+<script>
+  const CARE_KEY   = 'petconnect.care.reminders';
+  const SITTER_KEY = 'petconnect.sitter.reports';
+
+  let _ownerEmail = '';
+  let _petName    = '';
+  let _reminder   = null;
+
+  // Pre-fill owner email from URL params if link was generated by admin
+  (function() {
+    const params = new URLSearchParams(location.search);
+    const oe = params.get('owner');
+    const pn = params.get('pet');
+    if (oe) document.getElementById('ownerEmailInput').value = oe;
+    if (pn) _petName = pn;
+  })();
+
+  // Set today's date as default
+  document.getElementById('s-date').value = new Date().toISOString().split('T')[0];
+
+  function loadCareInstructions() {
+    const email     = document.getElementById('ownerEmailInput').value.trim().toLowerCase();
+    const reminders = JSON.parse(localStorage.getItem(CARE_KEY) || '{}');
+    const reminder  = reminders[email];
+    const errEl     = document.getElementById('lookupError');
+    if (!reminder) {
+      errEl.classList.add('show');
+      return;
+    }
+    errEl.classList.remove('show');
+    _ownerEmail = email;
+    _reminder   = reminder;
+    _petName    = reminder.petName || _petName || 'the pet';
+    renderForm(reminder);
+  }
+
+  function renderForm(r) {
+    document.getElementById('headerPetName').textContent = _petName;
+    document.getElementById('completionPetName').textContent = _petName;
+
+    // Care info box
+    const infoRows = [
+      { label:'Feeding Schedule',           val: r.feeding },
+      { label:'Medications / Special Needs', val: r.meds },
+      { label:'Vet Contact',                val: r.vet },
+      { label:'Additional Notes',           val: r.notes },
+    ].filter(row => row.val);
+    const infoBox = document.getElementById('careInfoBox');
+    infoBox.innerHTML = infoRows.length
+      ? infoRows.map(row => `<div class="care-info-row"><strong>${esc(row.label)}</strong><span>${esc(row.val)}</span></div>`).join('')
+      : '<p style="font-size:.86rem;color:var(--text-soft);">No specific care instructions on file. Follow standard care practices.</p>';
+
+    // Checklist
+    const tasks = (r.checklist && r.checklist.length)
+      ? r.checklist
+      : ['Morning feeding','Evening feeding','Fresh water daily','Morning walk','Medication given','Playtime (30 min)'];
+    const checklist = document.getElementById('sitterChecklist');
+    checklist.innerHTML = tasks.map((t, i) => `
+      <label class="sitter-check" id="sc-${i}">
+        <input type="checkbox" onchange="toggleCheck(${i}, this.checked)"/>
+        <span>${esc(t)}</span>
+      </label>`).join('');
+
+    document.getElementById('lookupSection').style.display = 'none';
+    document.getElementById('formSection').style.display   = 'block';
+  }
+
+  function toggleCheck(i, checked) {
+    document.getElementById(`sc-${i}`).classList.toggle('checked', checked);
+  }
+
+  function submitSitterForm() {
+    const sitterName  = document.getElementById('s-name').value.trim();
+    const sitterEmail = document.getElementById('s-email').value.trim();
+    const careDate    = document.getElementById('s-date').value;
+    const notes       = document.getElementById('s-notes').value.trim();
+    const completedTasks = Array.from(document.querySelectorAll('#sitterChecklist input[type=checkbox]:checked'))
+                              .map(cb => cb.closest('.sitter-check').querySelector('span').textContent.trim());
+    if (!sitterName || !sitterEmail) {
+      showToast('Please enter your name and email.', 'info');
+      return;
+    }
+    if (completedTasks.length === 0) {
+      showToast('Please check off at least one completed task.', 'info');
+      return;
+    }
+    const btn = document.getElementById('submitBtn');
+    btn.textContent = '⏳ Submitting…';
+    btn.disabled = true;
+
+    const report = {
+      id: Date.now().toString(),
+      ownerEmail:     _ownerEmail,
+      petName:        _petName,
+      ownerName:      _reminder ? _reminder.ownerName : '',
+      sitterName,
+      sitterEmail,
+      careDate,
+      completedTasks,
+      notes,
+      submittedAt: new Date().toISOString(),
+    };
+
+    const reports = JSON.parse(localStorage.getItem(SITTER_KEY) || '[]');
+    reports.push(report);
+    localStorage.setItem(SITTER_KEY, JSON.stringify(reports));
+
+    setTimeout(() => {
+      document.getElementById('formSection').style.display      = 'none';
+      document.getElementById('completionBanner').classList.add('show');
+      showToast(`✅ Report submitted for ${_petName}. Owner and agency notified.`, 'success', 5000);
+    }, 600);
+  }
+
+  function resetForm() {
+    document.getElementById('completionBanner').classList.remove('show');
+    document.getElementById('lookupSection').style.display = 'block';
+    document.getElementById('ownerEmailInput').value = '';
+    document.getElementById('s-name').value = '';
+    document.getElementById('s-email').value = '';
+    document.getElementById('s-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('s-notes').value = '';
+    const btn = document.getElementById('submitBtn');
+    btn.textContent = '✅ Submit Report & Notify Owner + Agency';
+    btn.disabled = false;
+    _ownerEmail = ''; _petName = ''; _reminder = null;
+  }
+
+  // Allow Enter key on email field to trigger lookup
+  document.getElementById('ownerEmailInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') loadCareInstructions();
+  });
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function showToast(msg, type='info', duration=4000) {
+    const c = document.getElementById('toastContainer');
+    const t = document.createElement('div');
+    t.className = `toast ${type}`;
+    t.textContent = msg;
+    c.appendChild(t);
+    requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('show')));
+    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 500); }, duration);
+  }
+</script>
+</body>
+</html>
