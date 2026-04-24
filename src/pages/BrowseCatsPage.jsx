@@ -21,7 +21,7 @@ export default function BrowseCatsPage() {
     setPage(0)
   }
 
-  const { cats, totalPages, loading, error } = useCats(filters, page)
+  const { cats, totalPages, loading, error, refetch } = useCats(filters, page)
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-10">
@@ -45,7 +45,13 @@ export default function BrowseCatsPage() {
       {loading && <LoadingSpinner count={6} />}
 
       {error && (
-        <div className="text-center py-12 text-red-500">{error}</div>
+        <div className="text-center py-12 text-red-500">
+          <p>{error}</p>
+          <button onClick={refetch}
+            className="mt-3 text-sm text-stone-500 underline">
+            Try again
+          </button>
+        </div>
       )}
 
       {!loading && !error && cats.length === 0 && (
