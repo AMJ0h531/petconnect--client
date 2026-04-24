@@ -166,16 +166,16 @@
   <div class="login-box">
     <span class="login-icon">🔐</span>
     <h2>Admin Sign In</h2>
-    <p>Enter the admin password to access the dashboard.</p>
-    <div style="background:var(--sky-50);border:2px solid var(--sky-400);border-radius:12px;padding:14px 18px;margin-bottom:20px;text-align:left;">
-      <span style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--sky-700);">Access PIN</span>
-      <div style="font-size:2rem;font-weight:900;color:var(--sky-900);letter-spacing:6px;margin-top:4px;">1234</div>
+    <p>Enter your admin credentials to access the dashboard.</p>
+    <div class="login-field">
+      <label>Username</label>
+      <input type="text" id="loginUsername" autocomplete="off" placeholder="Username"/>
     </div>
     <div class="login-field">
-      <label>Enter PIN</label>
-      <input type="tel" id="loginPassword" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="····" style="font-size:1.6rem;letter-spacing:8px;text-align:center;"/>
+      <label>Password</label>
+      <input type="password" id="loginPassword" autocomplete="new-password" placeholder="Password"/>
     </div>
-    <div id="loginError" style="display:none;color:#dc2626;font-size:.84rem;margin-bottom:10px;">Incorrect PIN. Enter: 1234</div>
+    <div id="loginError" style="display:none;color:#dc2626;font-size:.84rem;margin-bottom:10px;">Invalid credentials. Please try again.</div>
     <button type="button" class="btn-login" onclick="doLogin()">Sign In</button>
     <a href="index.html" style="display:inline-block;margin-top:18px;font-size:.85rem;font-weight:600;color:var(--sky-600);text-decoration:none;">← Return to PetConnect+</a>
   </div>
@@ -330,12 +330,17 @@
   // ── ADMIN AUTH ───────────────────────────────────────────────────────────────
   const ADMIN_AUTH_KEY = 'petconnect.admin.auth';
 
+  const ADMIN_USER = 'admin';
+  const ADMIN_PASS = 'admin1234';
+
   function doLogin() {
+    var user = document.getElementById('loginUsername').value.trim();
     var pass = document.getElementById('loginPassword').value.trim();
-    if (pass === '1234') {
+    if (user === ADMIN_USER && pass === ADMIN_PASS) {
       localStorage.setItem(ADMIN_AUTH_KEY, '1');
       document.getElementById('loginOverlay').style.display = 'none';
       document.getElementById('loginError').style.display = 'none';
+      renderDashboard();
     } else {
       document.getElementById('loginError').style.display = 'block';
       document.getElementById('loginPassword').value = '';
@@ -343,12 +348,14 @@
     }
   }
 
-  // Enter key on the password field triggers login
+  document.getElementById('loginUsername').onkeydown = function(e) {
+    if (e.key === 'Enter') document.getElementById('loginPassword').focus();
+  };
   document.getElementById('loginPassword').onkeydown = function(e) {
     if (e.key === 'Enter') doLogin();
   };
 
-  // Check if already logged in
+  // Check if already logged in — show dashboard immediately
   if (localStorage.getItem(ADMIN_AUTH_KEY) === '1') {
     document.getElementById('loginOverlay').style.display = 'none';
   }
@@ -589,6 +596,18 @@
     const btn = document.getElementById('refreshBtn');
     btn.textContent = '↻ Refreshing…';
     btn.disabled = true;
+    // Clear all data so the dashboard resets to a clean state
+    localStorage.removeItem(APPS_KEY);
+    localStorage.removeItem(STATUS_KEY);
+    localStorage.removeItem(CARE_KEY);
+    localStorage.removeItem(SITTER_KEY);
+    // Reset the care reminder form fields
+    ['cr-petName','cr-ownerName','cr-ownerEmail','cr-feeding','cr-meds','cr-vet','cr-notes'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    var lb = document.getElementById('sitterLinkBox');
+    if (lb) lb.style.display = 'none';
     renderDashboard();
     setTimeout(() => { btn.textContent = '↻ Refresh'; btn.disabled = false; }, 700);
   }

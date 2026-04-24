@@ -1063,8 +1063,9 @@
         btn.textContent = '⏳ Pending'; btn.disabled = true; btn.classList.add('pending');
         badge.className = 'badge-pending'; badge.textContent = 'Pending Review';
       } else if (status === 'adopted') {
-        btn.textContent = '🏡 Adopted!'; btn.disabled = true; btn.classList.add('adopted');
-        badge.className = 'badge-adopted'; badge.textContent = 'Adopted 🎉';
+        // Hide the entire card — adopted pets are no longer available
+        const card = btn.closest('.pet-card');
+        if (card) card.style.display = 'none';
       }
     });
 
